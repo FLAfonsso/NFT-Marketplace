@@ -10,5 +10,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  // Porta fixa: o Playwright depende dela; falha em vez de pular para outra porta.
+  server: { port: 5173, strictPort: true },
   resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
 });

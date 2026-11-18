@@ -29,6 +29,13 @@ export default defineConfig([
     },
   },
   {
+    // O `use` das fixtures do Playwright não é o hook do React
+    files: ['e2e/**/*.ts'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+    },
+  },
+  {
     // Componentes gerados pelo shadcn exportam variantes (cva) junto do componente
     files: ['src/components/ui/**/*.tsx'],
     rules: {

@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 .tanstack/
+
+# Playwright (as baselines em e2e/__screenshots__ são versionadas)
+test-results
+playwright-report
