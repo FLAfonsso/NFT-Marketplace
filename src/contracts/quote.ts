@@ -70,3 +70,7 @@ export const Quote = z.object({
   expiresAt: IsoDateTime,
 })
 export type Quote = z.infer<typeof Quote>
+
+/** Aplica (ou remove, com null) o cupom guardado no carrinho. */
+export const SetCartCouponInput = z.object({ couponCode: CouponCode.nullable() })
+export type SetCartCouponInput = z.infer<typeof SetCartCouponInput>

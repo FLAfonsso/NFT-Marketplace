@@ -1,6 +1,7 @@
 export * from './common'
 export * from './auth'
 export * from './nft'
+export * from './favorite'
 export * from './cart'
 export * from './quote'
 export * from './order'

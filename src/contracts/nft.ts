@@ -64,3 +64,6 @@ export type NftListQueryInput = z.input<typeof NftListQuery>
 
 export const NftListResponse = paginated(Nft)
 export type NftListResponse = z.infer<typeof NftListResponse>
+
+export const NftCategoryList = z.object({ items: z.array(z.string().min(1)) })
+export type NftCategoryList = z.infer<typeof NftCategoryList>

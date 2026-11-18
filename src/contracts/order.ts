@@ -83,3 +83,6 @@ export const Order = z.object({
   version: Version,
 })
 export type Order = z.infer<typeof Order>
+
+export const OrderList = z.object({ items: z.array(Order) })
+export type OrderList = z.infer<typeof OrderList>

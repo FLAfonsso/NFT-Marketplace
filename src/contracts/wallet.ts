@@ -35,3 +35,6 @@ export const WalletInput = z.object({
   network: Network,
 })
 export type WalletInput = z.infer<typeof WalletInput>
+
+export const WalletList = z.object({ items: z.array(Wallet) })
+export type WalletList = z.infer<typeof WalletList>
