@@ -37,6 +37,23 @@ export const mockControl = {
       if (edition) edition.available = Math.max(0, Math.min(edition.supply, Math.trunc(available)))
     }),
   /**
+   * Diagnóstico somente leitura do TanStack Query (os testes verificam o isolamento por usuário):
+   * chaves e dados de cada consulta e as variáveis das mutations. Não altera o cache.
+   */
+  inspectQueryCache: async () => {
+    const { queryClient } = await import('@/lib/queryClient')
+    return {
+      queries: queryClient
+        .getQueryCache()
+        .getAll()
+        .map((query) => ({ queryKey: query.queryKey, data: query.state.data })),
+      mutations: queryClient
+        .getMutationCache()
+        .getAll()
+        .map((mutation) => ({ variables: mutation.state.variables })),
+    }
+  },
+  /**
    * Tempo real (docs/REALTIME.md): emitNftUpdate, emitOrderUpdate, emitDuplicate, emitStale,
    * disconnectSockets, reconnectSockets, listSockets e probe.
    */
