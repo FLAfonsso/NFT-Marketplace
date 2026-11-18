@@ -1,10 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PageSkeleton } from '@/components/PageSkeleton'
+import { OrderPage } from '@/features/orders'
 
 export const Route = createFileRoute('/_authenticated/orders/$id')({
-  component: OrderConfirmationPage,
+  component: OrderRoute,
 })
 
-function OrderConfirmationPage() {
-  return <PageSkeleton title="Confirmação do pedido" />
+function OrderRoute() {
+  const { id } = Route.useParams()
+  return <OrderPage orderId={id} />
 }
