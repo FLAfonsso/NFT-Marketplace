@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PageSkeleton } from '@/components/PageSkeleton'
+import { AuthScreen } from '@/features/auth/components/AuthScreen'
 import { authSearchSchema, redirectIfAuthenticated } from '@/features/auth/routeGuards'
 
 export const Route = createFileRoute('/login')({
@@ -9,5 +9,6 @@ export const Route = createFileRoute('/login')({
 })
 
 function LoginPage() {
-  return <PageSkeleton title="Entrar" />
+  const { redirect } = Route.useSearch()
+  return <AuthScreen mode="login" redirect={redirect} />
 }
