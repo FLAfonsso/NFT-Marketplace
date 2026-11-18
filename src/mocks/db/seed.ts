@@ -1,6 +1,14 @@
 import type { Cart, EditionName, Network, Nft, NftEdition, Order, Wallet } from '@/contracts'
 import type { CouponRecord, DbState, OrderRecord, UserRecord } from './types'
-import { createRng, deepFreeze, Eth, stableStringify, toEthString, transactionRefFor } from './util'
+import {
+  createRng,
+  deepFreeze,
+  Eth,
+  networkFeeFor,
+  stableStringify,
+  toEthString,
+  transactionRefFor,
+} from './util'
 
 /**
  * Fixtures determinísticas. Tudo é derivado de constantes e de um PRNG com semente fixa:
@@ -11,7 +19,7 @@ import { createRng, deepFreeze, Eth, stableStringify, toEthString, transactionRe
  * - bruno@example.com
  */
 
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 5
 const RNG_SEED = 20261101
 /** "Agora" do cenário: datas do seed são relativas a ele. */
 const SEED_NOW = Date.parse('2026-11-01T12:00:00.000Z')
@@ -479,7 +487,7 @@ const buildPastOrder = (nfts: Nft[]): OrderRecord => {
   const quantity = 1
   const unitPrice = nft.price
   const subtotal = new Eth(unitPrice).mul(quantity)
-  const networkFee = new Eth('0.0018')
+  const networkFee = networkFeeFor(1)
   const id = 'ord_seed_1'
   const items = [
     {

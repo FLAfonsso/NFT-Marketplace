@@ -94,7 +94,7 @@ Usuário autenticado ou visitante (`X-Guest-Cart-Id`). Sem nenhum dos dois → 4
 - `unitPrice` = preço atual do NFT; `lineTotal = unitPrice × quantity`; `subtotal` = soma das linhas.
 - Cupom (`coupon`): `applied`, `expired` ou `invalid` (inexistente). Cupom inválido **não** é erro: a cotação vem com `discount: "0"`.
   - Percentual: `subtotal × %`, limitado ao teto do cupom. Fixo: valor em ETH. Nunca maior que o subtotal.
-- `networkFee` = `0.0012 + 0.0003 × (linhas − 1)`.
+- `networkFee` é fixa: `"0.016"` ETH quando há pelo menos um item e `"0"` com carrinho vazio, independente do número de linhas. O pedido guarda no snapshot a taxa da cotação usada. Ex.: carrinho da Ana (2 + 6 + 9 unidades) → `subtotal "26.83"`, `discount "0"`, `networkFee "0.016"`, `total "26.846"`.
 - `total = subtotal − discount + networkFee`.
 - `warnings`:
   - `unavailable`: quantidade pedida maior que `available` (a cotação é emitida, o pedido será recusado com 409).
@@ -187,7 +187,7 @@ Cupons: `BEMVINDO10` (10 %, teto 0.5 ETH), `MENOS005` (0.005 ETH), `BLACKFRIDAY2
 
 Catálogo: 36 NFTs (`nft_001`…`nft_036`, 4 páginas de 9), 9 coleções (Arte digital, Fotografia, Música, Arte 3D, Colecionáveis, Generativa, Jogos, Assinaturas, Utilidade), 3 redes, 4 edições por NFT (`1/1`, `1/10`, `1/50`, `ABERTA`), preços de 0.02 a 12.30 ETH, alguns NFTs totalmente esgotados e outros com edições esgotadas.
 
-NFTs nomeados no design: Emerald Ape #042 (`nft_001`, badge `RARO`, nota 4.8 com 19 avaliações), Sage Nomad #009, Neon Vessel #552 (1.99, `compareAtPrice` 2.29), Cosmic Bloom #118, Violet Nomad #314, Ivory Baron #088, Golden Beat #207 e Golden Signal #160. Violet Nomad e Ivory Baron têm estoque de pelo menos 9 unidades nas edições `1/10`, `1/50` e `ABERTA`. As imagens são arquivos de `public/assets` (`/assets/Eape.png`, `Sape.png`, `Nape.png`, `Gape.png`): Emerald Ape usa Eape, Sage Nomad usa Sape, Neon Vessel e Ivory Baron usam Nape, Golden Beat e Golden Signal usam Gape; os demais alternam entre as quatro. Cada `gallery` tem 4 imagens (a principal primeiro). O seed é determinístico (versão do esquema 3: estado salvo por versões anteriores no `localStorage` é descartado).
+NFTs nomeados no design: Emerald Ape #042 (`nft_001`, badge `RARO`, nota 4.8 com 19 avaliações), Sage Nomad #009, Neon Vessel #552 (1.99, `compareAtPrice` 2.29), Cosmic Bloom #118, Violet Nomad #314, Ivory Baron #088, Golden Beat #207 e Golden Signal #160. Violet Nomad e Ivory Baron têm estoque de pelo menos 9 unidades nas edições `1/10`, `1/50` e `ABERTA`. As imagens são arquivos de `public/assets` (`/assets/Eape.png`, `Sape.png`, `Nape.png`, `Gape.png`): Emerald Ape usa Eape, Sage Nomad usa Sape, Neon Vessel e Ivory Baron usam Nape, Golden Beat e Golden Signal usam Gape; os demais alternam entre as quatro. Cada `gallery` tem 4 imagens (a principal primeiro). O seed é determinístico (versão do esquema 5: estado salvo por versões anteriores no `localStorage` é descartado).
 
 ### Controles (`window.__mocks`)
 

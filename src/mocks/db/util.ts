@@ -11,6 +11,11 @@ export const toEthString = (value: Decimal.Value): EthString => {
   return d.toFixed()
 }
 
+/** Taxa de rede fixa (ETH) de qualquer carrinho com pelo menos um item; "0" se vazio. */
+export const NETWORK_FEE = '0.016'
+export const networkFeeFor = (lineCount: number): Eth =>
+  new Eth(lineCount > 0 ? NETWORK_FEE : 0)
+
 /** PRNG determinístico (mulberry32). Usado só para gerar fixtures. */
 export const createRng = (seed: number) => {
   let a = seed >>> 0

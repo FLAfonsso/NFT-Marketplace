@@ -9,12 +9,8 @@ import {
 import { mockSettings } from '../settings'
 import { nextId, transact, type TxContext } from '../db/store'
 import type { CartKey, CouponRecord, DbState } from '../db/types'
-import { Eth, toEthString } from '../db/util'
+import { Eth, networkFeeFor, toEthString } from '../db/util'
 import { API, fail, parseBody, resolveActor, route } from './utils'
-
-/** Taxa de rede simulada: base fixa mais um adicional por linha. */
-const NETWORK_FEE_BASE = '0.0012'
-const NETWORK_FEE_PER_LINE = '0.0003'
 
 const evaluateCoupon = (
   code: string,
@@ -112,9 +108,7 @@ export const createQuote = (
       )
     : null
   const discount = couponResult?.discount ?? new Eth(0)
-  const networkFee = new Eth(NETWORK_FEE_BASE).add(
-    new Eth(NETWORK_FEE_PER_LINE).mul(lines.length - 1),
-  )
+  const networkFee = networkFeeFor(lines.length)
 
   // Descarta cotações vencidas antes de guardar a nova.
   for (const [id, record] of Object.entries(db.quotes)) {
