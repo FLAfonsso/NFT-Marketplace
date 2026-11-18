@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { CreateOrderInput } from '@/contracts'
+import { canWritePrivateData, userKey } from '@/lib/privateStorage'
 import { CHECKOUT_FIELDS, type CheckoutFormValues } from './schema'
 
 /**
@@ -7,15 +8,17 @@ import { CHECKOUT_FIELDS, type CheckoutFormValues } from './schema'
  *
  * - Rascunho do formulário: sessionStorage (some ao fechar a aba). Só os campos do formulário,
  *   por lista explícita: nenhum dado de senha entra aqui. Apagado no logout.
+ * - No logout (e na troca de usuário) tudo isto é apagado por clearUserPrivateData; a expiração
+ *   da sessão (401) não apaga, para o mesmo usuário retomar.
  * - Tentativa de pedido (chave de idempotência + hash do conteúdo + corpo enviado) e pedido
- *   pendente: localStorage, para sobreviver a refresh, queda e novo login. Apagados só quando
- *   o pedido fica confirmado ou recusado.
+ *   pendente: localStorage, para sobreviver a refresh, queda e novo login. Apagados quando
+ *   o pedido fica confirmado ou recusado, ou no logout.
  */
 
-const PREFIX = 'nft-marketplace:checkout'
-const draftKey = (userId: string) => `${PREFIX}:draft:${userId}`
-const attemptKey = (userId: string) => `${PREFIX}:attempt:${userId}`
-const pendingKey = (userId: string) => `${PREFIX}:pending-order:${userId}`
+// Prefixos e chaves ficam em src/lib/privateStorage (também usados na limpeza do logout).
+const draftKey = (userId: string) => userKey('checkoutDraft', userId)
+const attemptKey = (userId: string) => userKey('checkoutAttempt', userId)
+const pendingKey = (userId: string) => userKey('checkoutPendingOrder', userId)
 
 function readJson(storage: () => Storage, key: string): unknown {
   try {
@@ -26,10 +29,10 @@ function readJson(storage: () => Storage, key: string): unknown {
   }
 }
 
-function write(storage: () => Storage, key: string, value: string | null) {
+function write(storage: () => Storage, userId: string, key: string, value: string | null) {
   try {
     if (value === null) storage().removeItem(key)
-    else storage().setItem(key, value)
+    else if (canWritePrivateData(userId)) storage().setItem(key, value)
   } catch {
     // Sem storage, o estado vale só enquanto a página estiver aberta.
   }
@@ -72,23 +75,11 @@ export const draftStorage = {
     const draft = Object.fromEntries(
       CHECKOUT_FIELDS.filter((field) => values[field] !== undefined).map((f) => [f, values[f]]),
     )
-    write(session, draftKey(userId), JSON.stringify(draft))
+    write(session, userId, draftKey(userId), JSON.stringify(draft))
   },
   clear(userId: string) {
-    write(session, draftKey(userId), null)
+    write(session, userId, draftKey(userId), null)
   },
-}
-
-/** Logout: apaga os rascunhos de todos os usuários desta aba (dados pessoais). */
-export function clearCheckoutDrafts() {
-  try {
-    const keys = Array.from({ length: sessionStorage.length }, (_, i) => sessionStorage.key(i))
-    for (const key of keys) {
-      if (key?.startsWith(`${PREFIX}:draft:`)) sessionStorage.removeItem(key)
-    }
-  } catch {
-    // Idem.
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -118,14 +109,14 @@ export const attemptStorage = {
     return parsed.success ? parsed.data : null
   },
   save(userId: string, attempt: OrderAttempt) {
-    write(local, attemptKey(userId), JSON.stringify(attempt))
+    write(local, userId, attemptKey(userId), JSON.stringify(attempt))
   },
   update(userId: string, patch: Partial<OrderAttempt>) {
     const current = attemptStorage.load(userId)
     if (current) attemptStorage.save(userId, { ...current, ...patch })
   },
   clear(userId: string) {
-    write(local, attemptKey(userId), null)
+    write(local, userId, attemptKey(userId), null)
   },
 }
 
@@ -139,10 +130,10 @@ export const pendingOrderStorage = {
     return typeof value === 'string' && value ? value : null
   },
   save(userId: string, orderId: string) {
-    write(local, pendingKey(userId), JSON.stringify(orderId))
+    write(local, userId, pendingKey(userId), JSON.stringify(orderId))
   },
   clear(userId: string) {
-    write(local, pendingKey(userId), null)
+    write(local, userId, pendingKey(userId), null)
   },
 }
 

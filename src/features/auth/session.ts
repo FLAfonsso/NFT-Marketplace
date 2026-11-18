@@ -2,8 +2,8 @@ import type { LoginInput, RegisterInput, Session, User } from '@/contracts'
 import { isApiRequestError, setTokenGetter } from '@/lib/api'
 import { queryClient } from '@/lib/queryClient'
 import { queryKeys } from '@/lib/queryKeys'
-import { clearCheckoutDrafts } from '@/features/checkout/storage'
 import { closeSocket, openSocket } from '@/features/realtime/socket'
+import { allowPrivateData, clearOtherUsersPrivateData, clearUserPrivateData } from '@/lib/privateStorage'
 import { authApi } from './authApi'
 import { tokenStorage } from './tokenStorage'
 
@@ -34,7 +34,16 @@ const discardSessionData = () => {
 }
 
 const applySession = (session: Session) => {
-  if (state.user && state.user.id !== session.user.id) discardSessionData()
+  const previousId = state.user?.id
+  if (previousId && previousId !== session.user.id) {
+    // Troca de usuário sem logout: nada do anterior fica para o novo.
+    discardSessionData()
+    clearUserPrivateData(previousId)
+  }
+  // Depois de um 401 não há "anterior" em memória (nem após refresh): quem entra de novo como
+  // outro usuário também apaga o que sobrou do anterior. O mesmo usuário mantém tudo.
+  clearOtherUsersPrivateData(session.user.id)
+  allowPrivateData(session.user.id)
   tokenStorage.set(session.token)
   setState({ status: 'authenticated', user: session.user, token: session.token })
   openSocket(session.token)
@@ -110,14 +119,15 @@ export const sessionStore = {
   },
 
   async logout() {
+    const userId = state.user?.id
     try {
       await authApi.logout()
     } catch {
       // Logout é local mesmo se a API falhar; o token some do cliente.
     } finally {
-      // Rascunho do checkout tem dados pessoais: sai junto com a sessão. A expiração (401)
-      // não passa por aqui, então o rascunho sobrevive para a retomada depois do login.
-      clearCheckoutDrafts()
+      // Tentativa de checkout, pedido pendente e rascunho têm dados pessoais: saem junto com a
+      // sessão. A expiração (401) não passa por aqui, então eles sobrevivem para a retomada.
+      if (userId) clearUserPrivateData(userId)
       endSession()
     }
   },
