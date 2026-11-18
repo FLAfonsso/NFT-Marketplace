@@ -22,6 +22,23 @@ const DUMMY_USER = {
   passwordHash: '0'.repeat(64),
 }
 
+/** Nome de usuário inicial derivado do nome, sem repetir os existentes (a pessoa troca no Perfil). */
+const uniqueUsername = (users: readonly { username: string }[], name: string) => {
+  const base =
+    name
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 14)
+      .padEnd(3, '_') || 'colecionador'
+  const taken = new Set(users.map((u) => u.username.toLowerCase()))
+  let candidate = base
+  for (let n = 2; taken.has(candidate); n++) candidate = `${base}_${n}`
+  return candidate
+}
+
 export const authHandlers = [
   http.post(
     `${API}/auth/register`,
@@ -38,7 +55,8 @@ export const authHandlers = [
           id: nextId(db, 'usr'),
           name: input.name,
           email: input.email,
-          bio: '',
+          username: uniqueUsername(db.users, input.name),
+          ensName: null,
           avatarUrl: null,
           ...credentials,
           createdAt: tx.now,

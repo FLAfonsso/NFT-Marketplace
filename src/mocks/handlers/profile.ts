@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw'
-import { ChangePasswordInput, UpdateProfileInput, type Profile } from '@/contracts'
+import { ChangePasswordInput, UpdateProfileInput, type Profile, type Wallet } from '@/contracts'
 import { hashPassword, verifyPassword } from '../db/auth'
 import { read, transact } from '../db/store'
 import type { UserRecord } from '../db/types'
@@ -8,15 +8,22 @@ import { API, fail, noContent, parseBody, requireUser, route } from './utils'
 /** Limite do avatar em data URL, para caber no localStorage da simulação (~512 KB). */
 const AVATAR_MAX_LENGTH = 700_000
 
-const toProfile = (user: UserRecord): Profile => ({
+const toProfile = (user: UserRecord, wallets: readonly Wallet[]): Profile => ({
   id: user.id,
-  name: user.name,
+  displayName: user.name,
+  username: user.username,
   email: user.email,
-  bio: user.bio,
+  ensName: user.ensName,
+  walletNickname: wallets.find((w) => w.role === 'primary')?.nickname ?? null,
   avatarUrl: user.avatarUrl,
   updatedAt: user.updatedAt,
   version: user.version,
 })
+
+const usernameTaken = () =>
+  fail('conflict', 'Este nome de usuário já está em uso.', {
+    username: ['Nome de usuário já em uso'],
+  })
 
 const emailTaken = () =>
   fail('conflict', 'Este e-mail já está em uso por outra conta.', {
@@ -28,7 +35,7 @@ export const profileHandlers = [
     `${API}/profile`,
     route(({ request }) => {
       const { user } = requireUser(request)
-      return HttpResponse.json(toProfile(user))
+      return HttpResponse.json(toProfile(user, read().wallets[user.id] ?? []))
     }),
   ),
 
@@ -45,15 +52,34 @@ export const profileHandlers = [
       }
       const profile = transact((db, tx) => {
         if (db.users.some((u) => u.id !== user.id && u.email === input.email)) emailTaken()
+        if (
+          db.users.some(
+            (u) => u.id !== user.id && u.username.toLowerCase() === input.username.toLowerCase(),
+          )
+        ) {
+          usernameTaken()
+        }
         const record = db.users.find((u) => u.id === user.id)
         if (!record) return fail('not_found', 'Usuário não encontrado.')
-        record.name = input.name
+        const wallets = db.wallets[user.id] ?? []
+        const primary = wallets.find((w) => w.role === 'primary')
+        if (input.walletNickname !== null && !primary) {
+          fail('conflict', 'Cadastre uma carteira principal antes de definir o apelido.', {
+            walletNickname: ['Nenhuma carteira principal cadastrada'],
+          })
+        }
+        if (primary && input.walletNickname !== null && primary.nickname !== input.walletNickname) {
+          primary.nickname = input.walletNickname
+          primary.updatedAt = tx.now
+        }
+        record.name = input.displayName
+        record.username = input.username
         record.email = input.email
-        record.bio = input.bio
+        record.ensName = input.ensName
         if (input.avatarUrl !== undefined) record.avatarUrl = input.avatarUrl
         record.updatedAt = tx.now
         record.version += 1
-        return toProfile(record)
+        return toProfile(record, wallets)
       })
       return HttpResponse.json(profile)
     }),

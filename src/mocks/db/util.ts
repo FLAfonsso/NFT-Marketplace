@@ -48,7 +48,6 @@ export const deterministicHex = (input: string, length = 64) => {
 const EXPLORERS: Record<Network, string> = {
   ethereum: 'https://etherscan.io/tx/',
   polygon: 'https://polygonscan.com/tx/',
-  arbitrum: 'https://arbiscan.io/tx/',
   base: 'https://basescan.org/tx/',
 }
 

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { Email, Password, PersonName } from './auth'
 import { Id, IsoDateTime, Version } from './common'
+import { EnsName, Username } from './wallet'
 
 /** URL http(s) ou data URL de imagem (upload de avatar simulado). */
 export const AvatarUrl = z.union([
@@ -11,9 +12,12 @@ export type AvatarUrl = z.infer<typeof AvatarUrl>
 
 export const Profile = z.object({
   id: Id,
-  name: PersonName,
+  displayName: PersonName,
+  username: Username,
   email: Email,
-  bio: z.string().max(280),
+  ensName: EnsName.nullable(),
+  /** Apelido da carteira principal (null se ainda não há carteira). */
+  walletNickname: z.string().nullable(),
   avatarUrl: AvatarUrl.nullable(),
   updatedAt: IsoDateTime,
   version: Version,
@@ -21,10 +25,14 @@ export const Profile = z.object({
 export type Profile = z.infer<typeof Profile>
 
 export const UpdateProfileInput = z.object({
-  name: PersonName,
+  displayName: PersonName,
+  username: Username,
   email: Email,
-  bio: z.string().trim().max(280, 'A bio deve ter no máximo 280 caracteres'),
-  /** null remove o avatar. */
+  /** null remove o nome ENS. */
+  ensName: EnsName.nullable(),
+  /** Renomeia a carteira principal. Exige que ela exista. */
+  walletNickname: z.string().trim().min(1, 'Informe um apelido').max(40).nullable(),
+  /** Ausente mantém o avatar; null remove. */
   avatarUrl: AvatarUrl.nullable().optional(),
 })
 export type UpdateProfileInput = z.infer<typeof UpdateProfileInput>

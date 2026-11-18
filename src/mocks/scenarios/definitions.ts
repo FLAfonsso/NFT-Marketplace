@@ -56,7 +56,7 @@ const leafPaths = (value: unknown, prefix = ''): string[] => {
 }
 
 const GUARDED_ID = /^\/api\/(orders|wallets)\/[^/]+$/
-const NFT_DETAIL = /^\/api\/nfts\/(?!categories$)[^/]+$/
+const NFT_DETAIL = /^\/api\/nfts\/[^/]+$/
 /** client-errors não bloqueia entrar e sair, para dar para chegar aos formulários. */
 const AUTH_FLOW = new Set([`${API}/auth/login`, `${API}/auth/logout`])
 

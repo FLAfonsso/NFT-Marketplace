@@ -3,7 +3,7 @@ import { Email, PersonName } from './auth'
 import { CartItem } from './cart'
 import { ApiError, Count, EthString, Id, IsoDateTime, Quantity, Version } from './common'
 import { CouponCode, Quote } from './quote'
-import { Network, WalletAddress } from './wallet'
+import { CollectorFormFields, Network, WalletAddress } from './wallet'
 
 export const ORDER_STATUSES = ['pending', 'confirmed', 'rejected'] as const
 export const OrderStatus = z.enum(ORDER_STATUSES)
@@ -18,16 +18,15 @@ export const Buyer = z.object({
 })
 export type Buyer = z.infer<typeof Buyer>
 
-export const CreateOrderInput = z.object({
+export const CreateOrderInput = CollectorFormFields.extend({
   /** Mesma chave recupera o mesmo pedido; mesma chave com conteúdo diferente gera conflict. */
   idempotencyKey: z.uuid(),
   /** Cotação revisada pelo usuário. A API rejeita cotação desatualizada. */
   quoteId: Id,
   items: z.array(CartItem).min(1),
   couponCode: CouponCode.optional(),
+  /** Carteira cadastrada usada na compra. `address` e `network` devem coincidir com ela. */
   walletId: Id,
-  network: Network,
-  buyer: Buyer,
 })
 export type CreateOrderInput = z.infer<typeof CreateOrderInput>
 

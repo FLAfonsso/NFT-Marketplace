@@ -106,6 +106,11 @@ export const orderHandlers = [
             ? fail('forbidden', 'Esta carteira pertence a outro usuário.')
             : fail('not_found', 'Carteira não encontrada.', { walletId: ['Carteira inexistente'] })
         }
+        if (wallet.address.toLowerCase() !== input.address.toLowerCase()) {
+          fail('validation', 'O endereço não corresponde à carteira escolhida.', {
+            address: ['Use o endereço da carteira selecionada'],
+          })
+        }
         if (wallet.network !== input.network) {
           fail('validation', 'A rede não corresponde à carteira escolhida.', {
             network: [`A carteira está na rede ${wallet.network}`],
@@ -150,7 +155,7 @@ export const orderHandlers = [
             editionId: edition.id,
             nftName: nft.name,
             editionName: edition.name,
-            imageUrl: nft.images[0].url,
+            imageUrl: nft.gallery[0].url,
             quantity: line.quantity,
             unitPrice: line.unitPrice,
             lineTotal: line.lineTotal,
@@ -178,7 +183,7 @@ export const orderHandlers = [
             total: quote.total,
             walletAddress: wallet.address,
             network: wallet.network,
-            buyer: { ...input.buyer },
+            buyer: { name: input.displayName, email: input.email },
           }),
           transactionRef: null,
           rejectionReason: null,

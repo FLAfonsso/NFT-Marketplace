@@ -41,17 +41,23 @@ Senhas são guardadas como PBKDF2-SHA256 (Web Crypto, 100 000 iterações, salt 
 | Método | Caminho | Auth | Entrada | Saída | Erros |
 |---|---|---|---|---|---|
 | GET | `/nfts` | não | query `NftListQuery` | 200 `NftListResponse` | 400 |
-| GET | `/nfts/categories` | não | — | 200 `NftCategoryList` | — |
 | GET | `/nfts/:id` | não | — | 200 `Nft` | 404 |
 
 Query de `/nfts` (todos combináveis):
 
-- `q`: busca sem acento e sem caixa em nome, criador e descrição.
-- `category`: igualdade (sem acento/caixa).
-- `minPrice`, `maxPrice`: `EthString`, inclusivos. `minPrice > maxPrice` → 400.
-- `availableOnly=true`: ao menos uma edição com `available > 0`.
+- `q`: busca sem acento e sem caixa em nome, criador, coleção e descrição.
+- `view`: `all` (padrão), `new` (criados até 7 dias antes do NFT mais recente do catálogo) ou `trending` (os 12 com mais avaliações). Recorta o catálogo antes dos demais filtros.
+- `collections`: ids (slugs) das coleções, ex.: `arte-digital`, `musica`. Chave repetida (`collections=a&collections=b`), `collections[]=a` ou separada por vírgula (`collections=a,b`). Várias coleções são alternativas (OU).
+- `networks`: `ethereum`, `polygon`, `base`, mesmo formato de lista. Várias redes são alternativas (OU).
+- `priceMin`, `priceMax`: `EthString`, inclusivos. `priceMin > priceMax` → 400 (`fieldErrors.priceMin`).
 - `sort`: `recent` (padrão), `price_asc`, `price_desc`, `name_asc`. Desempate por `id`.
-- `page` (padrão 1), `pageSize` (padrão 12, máx. 48). Página além do fim devolve `items: []`.
+- `page` (padrão 1), `pageSize` (padrão **9**, máx. 48). Página além do fim devolve `items: []`.
+
+`NftListResponse`: `items`, `page`, `pageSize`, `total`, `totalPages` e `facets`.
+
+`facets` traz `collections` e `networks`, cada um uma lista `{ id, name, count }` com **todas** as opções (inclusive `count: 0`). A contagem respeita todos os filtros ativos (`q`, `view`, preço e o outro grupo), **exceto o filtro do próprio grupo**: assim, com uma coleção marcada, as demais mostram quantos itens teriam ao serem marcadas também. Sem filtro de grupo, a soma das contagens é `total`.
+
+`Nft` (campos novos em relação à versão anterior): `network`, `collection` (slug) e `collectionName`, `badge` (`"RARO"`, opcional), `tokenId` (só dígitos, `#314` → `"0314"`), `gallery` (exatamente 4 imagens, substitui `images`), `attributes` (`{ traitType, value }[]`), `compareAtPrice` (opcional, preço antigo riscado), `rating` (`{ average, count }`) e `editions` (sempre 4, nomes `1/1`, `1/10`, `1/50` e `ABERTA`, cada uma com `available`). `category` foi removido e `GET /nfts/categories` deixou de existir: use as `facets`.
 
 ## Favoritos
 
@@ -100,16 +106,18 @@ Usuário autenticado ou visitante (`X-Guest-Cart-Id`). Sem nenhum dos dois → 4
 
 | Método | Caminho | Auth | Entrada | Saída | Erros |
 |---|---|---|---|---|---|
-| POST | `/orders` | sim | cabeçalho `Idempotency-Key: <uuid>` + `CreateOrderInput` | 201 `Order` (novo) ou 200 `Order` (repetição) | 400, 401, 403, 404, 409 |
+| POST | `/orders` | sim | cabeçalho `Idempotency-Key: <uuid>` + `CreateOrderInput` (ver abaixo) | 201 `Order` (novo) ou 200 `Order` (repetição) | 400, 401, 403, 404, 409 |
 | GET | `/orders` | sim | — | 200 `OrderList` (mais recente primeiro) | 401 |
 | GET | `/orders/:id` | sim | — | 200 `Order` | 401, 403, 404 |
+
+`CreateOrderInput` = `idempotencyKey`, `quoteId`, `items`, `couponCode?`, `walletId` + os campos do formulário do colecionador (`CollectorFormFields`): `displayName`, `username`, `network`, `profileName`, `address`, `secondaryWallet?` (ENS ou endereço), `walletType` (`MetaMask`, `WalletConnect` ou `Coinbase Wallet`), `referralCode`, `email`, `ensName` e `note?`. Código de indicação e nome ENS são obrigatórios, como no layout. O recibo (`snapshot.buyer`) guarda `{ name: displayName, email }`.
 
 Criação, na ordem:
 
 1. `Idempotency-Key` é obrigatório e igual a `idempotencyKey` do corpo → senão 400.
 2. **Idempotência** (por usuário, antes de qualquer outra regra): mesma chave e mesmo conteúdo → 200 com o mesmo pedido, no estado atual, e cabeçalho `Idempotent-Replayed: true`. Mesma chave com conteúdo diferente → 409.
 3. Cotação: inexistente → 404; de outra sessão → 403; vencida → 409; itens ou cupom diferentes da cotação → 409.
-4. Carteira: inexistente → 404; de outro usuário → 403; `network` diferente da carteira → 400.
+4. Carteira: inexistente → 404; de outro usuário → 403; `address` ou `network` diferentes da carteira → 400.
 5. Preço atual diferente do cotado → 409 `OrderConflict` `{ reason: "price_changed", quote }`: a cotação antiga é descartada e `quote` é a nova (com aviso `price_changed`), pronta para confirmar. Estoque insuficiente ou esgotado → 409 `OrderConflict` `{ reason: "insufficient_stock" | "sold_out", nftId, editionId, available }`.
 6. Reserva o estoque (emite `nft.updated`), cria o pedido `pending`, consome a cotação.
 
@@ -124,9 +132,12 @@ Pagamento recusado de forma determinística: carteira cujo endereço termina em 
 | Método | Caminho | Auth | Entrada | Saída | Erros |
 |---|---|---|---|---|---|
 | GET | `/profile` | sim | — | 200 `Profile` | 401 |
-| PUT | `/profile` | sim | `UpdateProfileInput` | 200 `Profile` | 400, 401, 409 (`fieldErrors.email`) |
+| PUT | `/profile` | sim | `UpdateProfileInput` | 200 `Profile` | 400, 401, 409 (`fieldErrors.email`, `username` ou `walletNickname`) |
 | PUT | `/profile/password` | sim | `ChangePasswordInput` | 204 | 400 (`fieldErrors.currentPassword` quando a atual está errada), 401 |
 
+- `Profile`: `displayName`, `username`, `email`, `ensName` (ou `null`), `walletNickname`, `avatarUrl`. `walletNickname` é o apelido da carteira **principal**: `null` se o usuário não tem carteira; ao salvar, renomeia a carteira principal (sem carteira principal, um valor não nulo → 409).
+- Nome de usuário e e-mail são únicos (sem diferenciar caixa no nome de usuário).
+- Cadastro (`/auth/register`) continua recebendo `name`: o nome de usuário inicial é derivado dele (`João Pé` → `joao_pe`, com sufixo numérico se já existir) e o ENS começa vazio.
 - `avatarUrl`: ausente mantém, `null` remove, URL http(s) ou data URL de imagem (até ~500 KB) substitui.
 - Trocar a senha encerra as outras sessões do usuário; a atual continua válida.
 
@@ -138,6 +149,8 @@ Pagamento recusado de forma determinística: carteira cujo endereço termina em 
 | POST | `/wallets` | sim | `WalletInput` | 201 `Wallet` | 400, 401, 409 (endereço duplicado) |
 | PUT | `/wallets/:id` | sim | `WalletInput` | 200 `Wallet` | 400, 401, 403, 404, 409 |
 
+- `WalletInput` = campos do formulário do colecionador (`CollectorFormFields`, os mesmos do pedido) + `nickname` (apelido da carteira) + `role` (`primary` ou `secondary`). `Wallet` acrescenta `id`, `createdAt` e `updatedAt`.
+- Redes: `ethereum`, `polygon`, `base`.
 - Sempre existe exatamente uma carteira `primary`: a primeira é promovida automaticamente; promover outra rebaixa a atual; rebaixar a única principal → 409.
 - Endereço duplicado é comparado sem caixa.
 
@@ -153,12 +166,16 @@ Pagamento recusado de forma determinística: carteira cujo endereço termina em 
 
 | Usuário | E-mail | Senha | Observação |
 |---|---|---|---|
-| Ana Souza | `ana@example.com` | `ana12345` | carrinho com 2 itens, 3 favoritos, 1 pedido confirmado |
-| Bruno Lima | `bruno@example.com` | `bruno12345` | carteira `Sem saldo` (termina em `dead`) recusa pagamentos |
+| Ana Souza | `ana@example.com` | `ana12345` | usuário `ana_souza`, ENS `ana.eth`, código de indicação `KURIO-ANA26`; carteira principal `Principal` (MetaMask, Ethereum) e secundária `Reserva` (WalletConnect, Polygon); carrinho com 2 itens, 3 favoritos, 1 pedido confirmado |
+| Bruno Lima | `bruno@example.com` | `bruno12345` | usuário `bruno_lima`, ENS `bruno.eth`, código de indicação `KURIO-BRUNO26`; carteira principal `Principal` (Coinbase Wallet, Base) e secundária `Sem saldo` (termina em `dead`, recusa pagamentos) |
+
+Os códigos de indicação são fictícios. Os endereços são `0x` + 40 hexadecimais.
 
 Cupons: `BEMVINDO10` (10 %, teto 0.5 ETH), `MENOS005` (0.005 ETH), `BLACKFRIDAY25` (expirado), `NAOEXISTE` (inexistente).
 
-Catálogo: 48 NFTs (`nft_001`…`nft_048`), 6 categorias, 1 a 3 edições cada, preços de 0.005 a 12.5 ETH, alguns totalmente esgotados e outros com edições esgotadas.
+Catálogo: 36 NFTs (`nft_001`…`nft_036`, 4 páginas de 9), 9 coleções (Arte digital, Fotografia, Música, Arte 3D, Colecionáveis, Generativa, Jogos, Assinaturas, Utilidade), 3 redes, 4 edições por NFT (`1/1`, `1/10`, `1/50`, `ABERTA`), preços de 0.02 a 12.30 ETH, alguns NFTs totalmente esgotados e outros com edições esgotadas.
+
+NFTs nomeados no design: Emerald Ape #042 (`nft_001`, badge `RARO`, nota 4.8 com 19 avaliações), Sage Nomad #009, Neon Vessel #552 (1.99, `compareAtPrice` 2.29), Cosmic Bloom #118, Violet Nomad #314, Ivory Baron #088, Golden Beat #207 e Golden Signal #160. Violet Nomad e Ivory Baron têm estoque de pelo menos 9 unidades nas edições `1/10`, `1/50` e `ABERTA`. O seed é determinístico (versão do esquema 2: estado salvo por versões anteriores no `localStorage` é descartado).
 
 ### Controles (`window.__mocks`)
 

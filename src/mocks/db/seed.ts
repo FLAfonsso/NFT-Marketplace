@@ -1,4 +1,4 @@
-import type { Cart, Nft, NftEdition, Order, Wallet } from '@/contracts'
+import type { Cart, EditionName, Network, Nft, NftEdition, Order, Wallet } from '@/contracts'
 import type { CouponRecord, DbState, OrderRecord, UserRecord } from './types'
 import { createRng, deepFreeze, Eth, stableStringify, toEthString, transactionRefFor } from './util'
 
@@ -11,7 +11,7 @@ import { createRng, deepFreeze, Eth, stableStringify, toEthString, transactionRe
  * - bruno@example.com
  */
 
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2
 const RNG_SEED = 20261101
 /** "Agora" do cenário: datas do seed são relativas a ele. */
 const SEED_NOW = Date.parse('2026-11-01T12:00:00.000Z')
@@ -35,14 +35,25 @@ export const SEED_COUPON_CODES = {
  */
 export const REJECTING_ADDRESS_SUFFIX = 'dead'
 
-export const NFT_CATEGORIES = [
-  'Arte',
-  'Fotografia',
-  'Música',
-  'Games',
-  'Colecionáveis',
-  'Esportes',
+/** Coleções do design. `id` é o slug usado no filtro `collections`. */
+export const NFT_COLLECTIONS = [
+  { id: 'arte-digital', name: 'Arte digital' },
+  { id: 'fotografia', name: 'Fotografia' },
+  { id: 'musica', name: 'Música' },
+  { id: 'arte-3d', name: 'Arte 3D' },
+  { id: 'colecionaveis', name: 'Colecionáveis' },
+  { id: 'generativa', name: 'Generativa' },
+  { id: 'jogos', name: 'Jogos' },
+  { id: 'assinaturas', name: 'Assinaturas' },
+  { id: 'utilidade', name: 'Utilidade' },
 ] as const
+
+/** As 3 redes do catálogo, com o nome de exibição. */
+export const NFT_NETWORKS = [
+  { id: 'ethereum', name: 'Ethereum' },
+  { id: 'polygon', name: 'Polygon' },
+  { id: 'base', name: 'Base' },
+] as const satisfies readonly { id: Network; name: string }[]
 
 const CREATORS = [
   'Lúmen Studio',
@@ -55,37 +66,41 @@ const CREATORS = [
   'Theo Albuquerque',
 ] as const
 
-const NOUNS = [
-  'Aurora',
-  'Horizonte',
-  'Eclipse',
-  'Maré',
-  'Labirinto',
-  'Vórtice',
-  'Constelação',
-  'Relâmpago',
-  'Oásis',
-  'Fractal',
-  'Cometa',
-  'Miragem',
-] as const
-
 const ADJECTIVES = [
+  'Emerald',
+  'Sage',
   'Neon',
-  'Silenciosa',
-  'Carmesim',
-  'Infinita',
-  'Dourada',
-  'Submersa',
-  'Elétrica',
-  'Polar',
+  'Cosmic',
+  'Violet',
+  'Ivory',
+  'Golden',
+  'Crimson',
+  'Silent',
+  'Azure',
+  'Lunar',
+  'Obsidian',
 ] as const
 
+const NOUNS = [
+  'Ape',
+  'Nomad',
+  'Vessel',
+  'Bloom',
+  'Baron',
+  'Beat',
+  'Signal',
+  'Echo',
+  'Prism',
+  'Tide',
+  'Oracle',
+  'Drift',
+  'Pulse',
+] as const
+
+/** Preços dos NFTs gerados (ETH, string decimal). */
 const PRICES = [
-  '0.005',
-  '0.012',
-  '0.025',
-  '0.04',
+  '0.035',
+  '0.05',
   '0.075',
   '0.1',
   '0.15',
@@ -99,14 +114,68 @@ const PRICES = [
   '3.5',
   '5',
   '8.75',
-  '12.5',
 ] as const
 
-const EDITION_NAMES = ['Standard', 'Gold', 'Genesis'] as const
-const SUPPLIES = [1, 5, 10, 25, 50, 100, 250] as const
-const MAX_PER_ORDER = [1, 2, 5, 10] as const
+/**
+ * NFTs nomeados no design. Ficam nas primeiras posições (mais recentes).
+ * `compareAtPrice` e `badge` só existem onde o design os mostra.
+ */
+interface NamedNft {
+  adjective: string
+  noun: string
+  number: number
+  price: string
+  compareAtPrice?: string
+  badge?: 'RARO'
+  rating?: { average: number; count: number }
+}
 
-const NFT_COUNT = 48
+const NAMED_NFTS: readonly NamedNft[] = [
+  {
+    adjective: 'Emerald',
+    noun: 'Ape',
+    number: 42,
+    price: '2.45',
+    badge: 'RARO',
+    rating: { average: 4.8, count: 19 },
+  },
+  { adjective: 'Sage', noun: 'Nomad', number: 9, price: '1.19' },
+  { adjective: 'Neon', noun: 'Vessel', number: 552, price: '1.99', compareAtPrice: '2.29' },
+  { adjective: 'Cosmic', noun: 'Bloom', number: 118, price: '0.75' },
+  { adjective: 'Violet', noun: 'Nomad', number: 314, price: '3.2' },
+  { adjective: 'Ivory', noun: 'Baron', number: 88, price: '1.5' },
+  { adjective: 'Golden', noun: 'Beat', number: 207, price: '0.35' },
+  { adjective: 'Golden', noun: 'Signal', number: 160, price: '0.8' },
+]
+
+/** Estes dois precisam de estoque folgado (pelo menos 9 unidades nas edições não únicas). */
+const HIGH_STOCK_NUMBERS = new Set([314, 88])
+
+/** Extremos da faixa de preço do design, em posições fixas (fora dos nomeados). */
+const MIN_PRICE_INDEX = 20
+const MAX_PRICE_INDEX = 21
+
+/** Único NFT em destaque: Emerald Ape #042. */
+const FEATURED_INDEX = 0
+
+/** 36 NFTs = 4 páginas de 9. */
+const NFT_COUNT = 36
+
+/** Tiragem e limite por pedido de cada edição. ABERTA não tem tiragem real. */
+const EDITION_SPECS: Record<EditionName, { supply: number; maxPerOrder: number }> = {
+  '1/1': { supply: 1, maxPerOrder: 1 },
+  '1/10': { supply: 10, maxPerOrder: 5 },
+  '1/50': { supply: 50, maxPerOrder: 10 },
+  ABERTA: { supply: 1000, maxPerOrder: 10 },
+}
+const EDITION_ORDER = ['1/1', '1/10', '1/50', 'ABERTA'] as const satisfies readonly EditionName[]
+
+const ATTRIBUTE_TRAITS = {
+  Fundo: ['Areia', 'Carvão', 'Âmbar', 'Névoa', 'Cobre'],
+  Aura: ['Brasa', 'Esmeralda', 'Violeta', 'Marfim', 'Neon'],
+  Olhos: ['Calmos', 'Brilhantes', 'Fechados', 'Dourados'],
+  Raridade: ['Comum', 'Incomum', 'Rara', 'Épica'],
+} as const
 
 const svgImage = (title: string, hueA: number, hueB: number, variant: number) => {
   const shape =
@@ -126,60 +195,120 @@ const svgImage = (title: string, hueA: number, hueB: number, variant: number) =>
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
-const pad = (n: number) => String(n).padStart(3, '0')
+const pad = (n: number, size = 3) => String(n).padStart(size, '0')
+
+interface NameParts {
+  adjective: string
+  noun: string
+  number: number
+}
+
+/** Nomes "Adjetivo Substantivo #NNN": os fixos primeiro, o resto gerado sem repetir. */
+const buildNames = (rng: ReturnType<typeof createRng>): NameParts[] => {
+  const names: NameParts[] = NAMED_NFTS.map(({ adjective, noun, number }) => ({
+    adjective,
+    noun,
+    number,
+  }))
+  const usedNumbers = new Set<number>(names.map((n) => n.number))
+  const usedPairs = new Set(names.map((n) => `${n.adjective} ${n.noun}`))
+  let k = 0
+  while (names.length < NFT_COUNT) {
+    const adjective = ADJECTIVES[k % ADJECTIVES.length]
+    const noun = NOUNS[(k * 5 + 7) % NOUNS.length]
+    k++
+    if (usedPairs.has(`${adjective} ${noun}`)) continue
+    let number = rng.int(1, 999)
+    while (usedNumbers.has(number)) number = (number % 999) + 1
+    usedPairs.add(`${adjective} ${noun}`)
+    usedNumbers.add(number)
+    names.push({ adjective, noun, number })
+  }
+  return names
+}
+
+const buildEditions = (
+  id: string,
+  rng: ReturnType<typeof createRng>,
+  mode: 'high' | 'sold-out' | 'normal',
+): NftEdition[] =>
+  EDITION_ORDER.map((name, e) => {
+    const { supply, maxPerOrder } = EDITION_SPECS[name]
+    // Duas leituras do PRNG por edição, sempre, para a sequência não depender do ramo.
+    const roll = rng.next()
+    const amount = rng.int(1, name === 'ABERTA' ? 300 : supply)
+    let available: number
+    if (mode === 'high') {
+      available = name === '1/1' ? 1 : name === 'ABERTA' ? 500 : supply
+    } else if (mode === 'sold-out') {
+      available = 0
+    } else {
+      available = roll < 0.15 ? 0 : amount
+    }
+    return { id: `${id}_ed${e + 1}`, name, supply, available, maxPerOrder }
+  })
 
 const buildNfts = (): Nft[] => {
   const rng = createRng(RNG_SEED)
+  const names = buildNames(rng)
   const nfts: Nft[] = []
 
   for (let i = 0; i < NFT_COUNT; i++) {
     const id = `nft_${pad(i + 1)}`
-    const noun = NOUNS[i % NOUNS.length]
-    const adjective = ADJECTIVES[(i * 5) % ADJECTIVES.length]
-    const name = `${noun} ${adjective} #${i + 1}`
-    const category = NFT_CATEGORIES[i % NFT_CATEGORIES.length]
+    const { adjective, noun, number } = names[i]
+    const named = NAMED_NFTS[i] as NamedNft | undefined
+    const tag = `#${pad(number)}`
+    const name = `${adjective} ${noun} ${tag}`
+
+    // As primeiras posições cobrem todas as coleções e redes; o resto é sorteado.
+    const collectionIndex = rng.int(0, NFT_COLLECTIONS.length - 1)
+    const networkIndex = rng.int(0, NFT_NETWORKS.length - 1)
+    const collection = NFT_COLLECTIONS[i < NFT_COLLECTIONS.length ? i : collectionIndex]
+    const network = NFT_NETWORKS[i < NFT_NETWORKS.length ? i : networkIndex]
     const creator = CREATORS[(i * 3) % CREATORS.length]
-    const price = rng.pick(PRICES)
+
+    const generatedPrice = rng.pick(PRICES)
+    const price =
+      named?.price ??
+      (i === MIN_PRICE_INDEX ? '0.02' : i === MAX_PRICE_INDEX ? '12.30' : generatedPrice)
     const hueA = rng.int(0, 359)
     const hueB = (hueA + rng.int(40, 160)) % 360
+    const ratingAverage = rng.int(38, 50) / 10
+    const ratingCount = rng.int(3, 240)
+    const rating = named?.rating ?? { average: ratingAverage, count: ratingCount }
 
-    // A cada 9 NFTs, um totalmente esgotado (posição 4 do ciclo).
-    const soldOut = i % 9 === 4
-    const editionCount = rng.int(1, 3)
-    const editions: NftEdition[] = []
-    for (let e = 0; e < editionCount; e++) {
-      const supply = rng.pick(SUPPLIES)
-      const partialSoldOut = rng.next() < 0.15
-      const available = soldOut || partialSoldOut ? 0 : rng.int(1, supply)
-      editions.push({
-        id: `${id}_ed${e + 1}`,
-        name: EDITION_NAMES[e],
-        supply,
-        available,
-        maxPerOrder: Math.min(supply, rng.pick(MAX_PER_ORDER)),
-      })
-    }
+    // Um NFT inteiro esgotado a cada 9, nas posições fora dos nomeados.
+    const mode = HIGH_STOCK_NUMBERS.has(number) ? 'high' : i % 9 === 8 ? 'sold-out' : 'normal'
 
-    const images = [
-      { url: svgImage(`#${i + 1}`, hueA, hueB, i), alt: `${name}, arte principal` },
-    ]
-    if (i % 4 === 0) {
-      images.push({
-        url: svgImage(noun.slice(0, 2), hueB, hueA, i + 1),
-        alt: `${name}, variação alternativa`,
-      })
-    }
+    const attributes = Object.entries(ATTRIBUTE_TRAITS).map(([traitType, values]) => ({
+      traitType,
+      value: rng.pick(values),
+    }))
+
+    const gallery = [0, 1, 2, 3].map((v) => ({
+      url: svgImage(tag, (hueA + v * 50) % 360, (hueB + v * 30) % 360, i + v),
+      alt: `${name}, ${v === 0 ? 'arte principal' : `visão ${v + 1}`}`,
+    }))
 
     nfts.push({
       id,
       name,
-      description: `${noun} ${adjective.toLowerCase()} é uma peça de ${category.toLowerCase()} criada por ${creator}.`,
+      description:
+        `${adjective} ${noun} é uma peça da coleção ${collection.name} criada por ${creator}, ` +
+        `cunhada na rede ${network.name}.`,
       creator,
-      category,
-      images,
+      network: network.id,
+      collection: collection.id,
+      collectionName: collection.name,
+      ...(named?.badge ? { badge: named.badge } : {}),
+      tokenId: pad(number, 4),
+      gallery,
+      attributes,
       price,
-      editions,
-      featured: i % 8 === 0,
+      ...(named?.compareAtPrice ? { compareAtPrice: named.compareAtPrice } : {}),
+      rating,
+      editions: buildEditions(id, rng, mode),
+      featured: i === FEATURED_INDEX,
       // Mais recentes primeiro: o NFT 1 é o mais novo.
       createdAt: iso(-(i * 13 * HOUR) - DAY),
       version: 1,
@@ -193,8 +322,9 @@ const buildUsers = (): UserRecord[] => [
   {
     id: SEED_USER_IDS.ana,
     name: 'Ana Souza',
+    username: 'ana_souza',
     email: 'ana@example.com',
-    bio: 'Coleciono arte generativa e fotografia.',
+    ensName: 'ana.eth',
     avatarUrl: null,
     passwordSalt: '6a1f0c9b3e5d7a2c4b8e1f0d3a6c9b2e',
     passwordHash: 'aa60ad870402299b58aff85d8e63c43e6b70e114eb45e28a3addfcb2f503307d',
@@ -205,8 +335,9 @@ const buildUsers = (): UserRecord[] => [
   {
     id: SEED_USER_IDS.bruno,
     name: 'Bruno Lima',
+    username: 'bruno_lima',
     email: 'bruno@example.com',
-    bio: '',
+    ensName: 'bruno.eth',
     avatarUrl: null,
     passwordSalt: 'c3b2a1f0e9d8c7b6a5f4e3d2c1b0a9f8',
     passwordHash: '29ce12dccaacff4a57dc24d8e71b14ca66a57072fe82509f1cf1b27bca4ce1a2',
@@ -216,49 +347,84 @@ const buildUsers = (): UserRecord[] => [
   },
 ]
 
-const buildWallets = (): Record<string, Wallet[]> => ({
-  [SEED_USER_IDS.ana]: [
-    {
-      id: 'wal_ana_1',
-      label: 'Principal',
-      address: '0x5a3c9e1b7d2f4a6c8e0b1d3f5a7c9e1b3d5f7a90',
-      role: 'primary',
-      network: 'ethereum',
-      createdAt: iso(-90 * DAY),
-      updatedAt: iso(-90 * DAY),
-    },
-    {
-      id: 'wal_ana_2',
-      label: 'Polygon',
-      address: '0x1f2e3d4c5b6a79880716253443526170f8e9d0c1',
-      role: 'secondary',
-      network: 'polygon',
-      createdAt: iso(-40 * DAY),
-      updatedAt: iso(-40 * DAY),
-    },
-  ],
-  [SEED_USER_IDS.bruno]: [
-    {
-      id: 'wal_bruno_1',
-      label: 'Base',
-      address: '0x9b8a7c6d5e4f30211203f4e5d6c7b8a9e0f1a2b3',
-      role: 'primary',
-      network: 'base',
-      createdAt: iso(-60 * DAY),
-      updatedAt: iso(-60 * DAY),
-    },
-    {
-      // Termina em "dead": pagamentos com esta carteira são recusados.
-      id: 'wal_bruno_2',
-      label: 'Sem saldo',
-      address: `0x${'0'.repeat(36)}${REJECTING_ADDRESS_SUFFIX}`,
-      role: 'secondary',
-      network: 'ethereum',
-      createdAt: iso(-20 * DAY),
-      updatedAt: iso(-20 * DAY),
-    },
-  ],
-})
+/** Códigos de indicação fictícios dos usuários de teste (documentados em docs/API.md). */
+export const SEED_REFERRAL_CODES = {
+  ana: 'KURIO-ANA26',
+  bruno: 'KURIO-BRUNO26',
+} as const
+
+const ANA_PRIMARY_ADDRESS = '0x5a3c9e1b7d2f4a6c8e0b1d3f5a7c9e1b3d5f7a90'
+
+const buildWallets = (): Record<string, Wallet[]> => {
+  const ana = {
+    displayName: 'Ana Souza',
+    username: 'ana_souza',
+    profileName: 'Ana Souza',
+    email: 'ana@example.com',
+    ensName: 'ana.eth',
+    referralCode: SEED_REFERRAL_CODES.ana,
+  }
+  const bruno = {
+    displayName: 'Bruno Lima',
+    username: 'bruno_lima',
+    profileName: 'Bruno Lima',
+    email: 'bruno@example.com',
+    ensName: 'bruno.eth',
+    referralCode: SEED_REFERRAL_CODES.bruno,
+  }
+  return {
+    [SEED_USER_IDS.ana]: [
+      {
+        ...ana,
+        id: 'wal_ana_1',
+        nickname: 'Principal',
+        address: ANA_PRIMARY_ADDRESS,
+        role: 'primary',
+        walletType: 'MetaMask',
+        network: 'ethereum',
+        secondaryWallet: '0x1f2e3d4c5b6a79880716253443526170f8e9d0c1',
+        createdAt: iso(-90 * DAY),
+        updatedAt: iso(-90 * DAY),
+      },
+      {
+        ...ana,
+        id: 'wal_ana_2',
+        nickname: 'Reserva',
+        address: '0x1f2e3d4c5b6a79880716253443526170f8e9d0c1',
+        role: 'secondary',
+        walletType: 'WalletConnect',
+        network: 'polygon',
+        createdAt: iso(-40 * DAY),
+        updatedAt: iso(-40 * DAY),
+      },
+    ],
+    [SEED_USER_IDS.bruno]: [
+      {
+        ...bruno,
+        id: 'wal_bruno_1',
+        nickname: 'Principal',
+        address: '0x9b8a7c6d5e4f30211203f4e5d6c7b8a9e0f1a2b3',
+        role: 'primary',
+        walletType: 'Coinbase Wallet',
+        network: 'base',
+        createdAt: iso(-60 * DAY),
+        updatedAt: iso(-60 * DAY),
+      },
+      {
+        ...bruno,
+        // Termina em "dead": pagamentos com esta carteira são recusados.
+        id: 'wal_bruno_2',
+        nickname: 'Sem saldo',
+        address: `0x${'0'.repeat(36)}${REJECTING_ADDRESS_SUFFIX}`,
+        role: 'secondary',
+        walletType: 'MetaMask',
+        network: 'ethereum',
+        createdAt: iso(-20 * DAY),
+        updatedAt: iso(-20 * DAY),
+      },
+    ],
+  }
+}
 
 const buildCoupons = (): CouponRecord[] => [
   {
@@ -313,7 +479,7 @@ const buildPastOrder = (nfts: Nft[]): OrderRecord => {
       editionId: edition.id,
       nftName: nft.name,
       editionName: edition.name,
-      imageUrl: nft.images[0].url,
+      imageUrl: nft.gallery[0].url,
       quantity,
       unitPrice,
       lineTotal: toEthString(subtotal),
@@ -330,7 +496,7 @@ const buildPastOrder = (nfts: Nft[]): OrderRecord => {
       discount: '0',
       networkFee: toEthString(networkFee),
       total: toEthString(subtotal.add(networkFee)),
-      walletAddress: '0x5a3c9e1b7d2f4a6c8e0b1d3f5a7c9e1b3d5f7a90',
+      walletAddress: ANA_PRIMARY_ADDRESS,
       network: 'ethereum',
       buyer: { name: 'Ana Souza', email: 'ana@example.com' },
     },

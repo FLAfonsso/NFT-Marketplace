@@ -5,7 +5,8 @@ export interface UserRecord {
   id: string
   name: string
   email: string
-  bio: string
+  username: string
+  ensName: string | null
   avatarUrl: string | null
   /** PBKDF2-SHA256 em hex. */
   passwordHash: string

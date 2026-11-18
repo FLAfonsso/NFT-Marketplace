@@ -21,6 +21,14 @@ export default defineConfig([
     },
   },
   {
+    // Rotas file-based exportam só `Route`, com o componente local. O plugin do Router separa
+    // o componente em outro chunk (autoCodeSplitting) e cuida do HMR desses arquivos.
+    files: ['src/routes/**/*.tsx'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
     // Componentes gerados pelo shadcn exportam variantes (cva) junto do componente
     files: ['src/components/ui/**/*.tsx'],
     rules: {
