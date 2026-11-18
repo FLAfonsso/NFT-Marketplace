@@ -70,4 +70,11 @@ export interface DbState {
   /** actor → "nftId:editionId" → último preço cotado, para avisar mudança de preço. */
   lastQuotedPrices: Record<string, Record<string, EthString>>
   orders: OrderRecord[]
+  /**
+   * Dados guardados enquanto o cenário "empty" está ativo (as listagens ficam vazias).
+   * Restaurados ao sair dele. Ver src/mocks/scenarios/data.ts.
+   */
+  stash?: CatalogStash
 }
+
+export type CatalogStash = Pick<DbState, 'nfts' | 'favorites' | 'carts' | 'wallets' | 'orders' | 'quotes'>

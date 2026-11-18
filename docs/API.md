@@ -19,7 +19,7 @@ Base: `/api`. Corpos em JSON. Schemas em `src/contracts` (nomes abaixo entre cra
 | `conflict` | 409 | e-mail/carteira duplicados, estoque, preço mudou, cotação vencida, chave de idempotência reutilizada |
 | `transient` | 500/502/503/504 | falha transitória (injetada pelos controles; ver abaixo) |
 
-Todas as rotas podem responder 5xx `transient` ou falha de rede quando um cenário de falha está ativo.
+Todas as rotas podem responder 5xx `transient` ou falha de rede quando um cenário de falha está ativo. Cenários nomeados: [SCENARIOS.md](SCENARIOS.md).
 
 ---
 
@@ -110,8 +110,10 @@ Criação, na ordem:
 2. **Idempotência** (por usuário, antes de qualquer outra regra): mesma chave e mesmo conteúdo → 200 com o mesmo pedido, no estado atual, e cabeçalho `Idempotent-Replayed: true`. Mesma chave com conteúdo diferente → 409.
 3. Cotação: inexistente → 404; de outra sessão → 403; vencida → 409; itens ou cupom diferentes da cotação → 409.
 4. Carteira: inexistente → 404; de outro usuário → 403; `network` diferente da carteira → 400.
-5. Preço atual diferente do cotado → 409. Estoque insuficiente ou esgotado → 409.
+5. Preço atual diferente do cotado → 409 `OrderConflict` `{ reason: "price_changed", quote }`: a cotação antiga é descartada e `quote` é a nova (com aviso `price_changed`), pronta para confirmar. Estoque insuficiente ou esgotado → 409 `OrderConflict` `{ reason: "insufficient_stock" | "sold_out", nftId, editionId, available }`.
 6. Reserva o estoque (emite `nft.updated`), cria o pedido `pending`, consome a cotação.
+
+`OrderConflict` (`src/contracts/order.ts`) estende `ApiError`. Os demais 409 do pedido (chave reutilizada, cotação vencida ou divergente) são `ApiError` simples.
 
 Ciclo de vida: após ~2,5 s o pedido vira `confirmed` (com `transactionRef`) ou `rejected` (com `rejectionReason`; o estoque reservado é devolvido). Ao confirmar, sai do carrinho só a quantidade comprada de cada item. O `snapshot` (recibo) é gravado na criação e nunca muda. Pedidos pendentes continuam a ser liquidados após refresh.
 
@@ -164,7 +166,8 @@ Para demonstração e Playwright (`page.evaluate`). O app não usa.
 
 | Função | Efeito |
 |---|---|
-| `reset()` | restaura exatamente o seed e as configurações padrão |
+| `setScenario(nome, opções?)` / `getScenario()` / `listScenarios()` | cenários nomeados; ver [SCENARIOS.md](SCENARIOS.md) |
+| `reset()` | restaura exatamente o seed, as configurações padrão e o cenário `default` |
 | `configure({ latencyMs, sessionTtlMs, quoteTtlMs, orderSettleMs })` | ajusta a simulação |
 | `failNext({ method?, path?, status, times, afterHandler? })` | próximas `times` requisições casadas falham com `status` (5xx) ou `'network'`. `afterHandler: true` executa o efeito e falha depois (timeout após criar o pedido) |
 | `expireSessions(userId?)` | expira sessões |

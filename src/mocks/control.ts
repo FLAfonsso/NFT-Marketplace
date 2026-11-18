@@ -1,5 +1,6 @@
 import { expireSessions } from './db/auth'
-import { reset, updateNft } from './db/store'
+import { updateNft } from './db/store'
+import { getScenario, listScenarios, reset, setScenario } from './scenarios'
 import { faults, mockSettings, type Fault, type MockSettings } from './settings'
 
 /**
@@ -7,7 +8,13 @@ import { faults, mockSettings, type Fault, type MockSettings } from './settings'
  * Exposto como window.__mocks em src/mocks/browser.ts. Nada aqui é usado pelo app.
  */
 export const mockControl = {
-  /** Restaura exatamente o seed e as configurações padrão. */
+  /** Ativa um cenário de src/mocks/scenarios do zero. Ex.: setScenario('jitter', { seed: 42 }). */
+  setScenario,
+  /** Cenário ativo, seed, opções e runtime. */
+  getScenario,
+  /** Nome e efeito de cada cenário. */
+  listScenarios,
+  /** Restaura exatamente o seed, as configurações padrão e o cenário "default". */
   reset,
   /** Ajusta latência, validade de sessão/cotação e atraso de liquidação. */
   configure: (patch: Partial<MockSettings>) => Object.assign(mockSettings, patch),

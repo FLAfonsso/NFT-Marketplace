@@ -170,13 +170,25 @@ export const updateNft = (nftId: string, change: (nft: Nft) => void) =>
 
 const timers = new Map<string, ReturnType<typeof setTimeout>>()
 
+export type SettlementOutcome = 'confirmed' | 'rejected'
+
+/** Resultado forçado pelos cenários de pagamento. null: regra da carteira (sufixo "dead"). */
+let forcedOutcome: SettlementOutcome | null = null
+
+/** Usado por src/mocks/scenarios. Vale para pedidos liquidados a partir de agora. */
+export const forceSettlementOutcome = (outcome: SettlementOutcome | null) => {
+  forcedOutcome = outcome
+}
+
 const settleOrder = (orderId: string) => {
   timers.delete(orderId)
   transact((db, tx) => {
     const record = db.orders.find((r) => r.order.id === orderId)
     if (!record || record.order.status !== 'pending') return
     const { order } = record
-    const rejected = order.snapshot.walletAddress.toLowerCase().endsWith(REJECTING_ADDRESS_SUFFIX)
+    const rejected = forcedOutcome
+      ? forcedOutcome === 'rejected'
+      : order.snapshot.walletAddress.toLowerCase().endsWith(REJECTING_ADDRESS_SUFFIX)
 
     if (rejected) {
       // Devolve o estoque reservado na criação.
@@ -232,12 +244,13 @@ export const scheduleSettlement = (record: Pick<OrderRecord, 'order' | 'settleAt
 
 export const settleDelayMs = () => mockSettings.orderSettleMs
 
-const rescheduleAll = () => {
+/** Agenda todos os pedidos pendentes ainda sem timer (após refresh ou troca de cenário). */
+export const rescheduleSettlements = () => {
   for (const record of state.orders) scheduleSettlement(record)
 }
 
 // Pedidos que estavam pendentes antes do refresh continuam a ser liquidados.
-rescheduleAll()
+rescheduleSettlements()
 
 // Mantém abas sincronizadas: outra aba gravou um estado novo.
 if (typeof window !== 'undefined') {
@@ -246,7 +259,7 @@ if (typeof window !== 'undefined') {
     const next = readStorage()
     if (next) {
       state = next
-      rescheduleAll()
+      rescheduleSettlements()
     }
   })
 }

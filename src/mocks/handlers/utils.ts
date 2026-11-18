@@ -1,28 +1,14 @@
-import { delay, HttpResponse, type HttpResponseResolver, type PathParams } from 'msw'
+import { HttpResponse, type HttpResponseResolver, type PathParams } from 'msw'
 import type { z } from 'zod'
 import type { ApiError, ErrorCode } from '@/contracts'
 import { checkSession } from '../db/auth'
 import { guestCartKey, userCartKey } from '../db/store'
 import type { CartKey } from '../db/types'
-import { faults, mockSettings, type Fault } from '../settings'
+import { withScenario } from '../scenarios'
+import { faults, type Fault } from '../settings'
+import { errorResponse } from './http'
 
-export const API = '/api'
-
-const STATUS_BY_CODE: Record<ErrorCode, number> = {
-  validation: 400,
-  unauthorized: 401,
-  forbidden: 403,
-  not_found: 404,
-  conflict: 409,
-  transient: 503,
-}
-
-export const errorResponse = (
-  code: ErrorCode,
-  message: string,
-  fieldErrors?: ApiError['fieldErrors'],
-  status = STATUS_BY_CODE[code],
-) => HttpResponse.json<ApiError>({ code, message, ...(fieldErrors ? { fieldErrors } : {}) }, { status })
+export { API, errorResponse, IDEMPOTENCY_HEADER, jsonError } from './http'
 
 /** Interrompe o handler com um ApiError. O MSW usa a Response lançada como resposta. */
 export const fail = (
@@ -142,14 +128,14 @@ const faultResponse = (fault: Fault) =>
 type Info = Parameters<HttpResponseResolver>[0]
 
 /**
- * Envolve um resolver com latência configurável, falhas injetadas (src/mocks/control.ts)
- * e conversão de erros inesperados em 500 transitório.
+ * Envolve um resolver com o cenário ativo (latência, falhas e regras de src/mocks/scenarios),
+ * as falhas injetadas por failNext (src/mocks/control.ts) e a conversão de erros inesperados
+ * em 500 transitório. Todo handler passa por aqui.
  */
-export const route =
-  (resolver: (info: Info) => Response | Promise<Response>): HttpResponseResolver =>
-  async (info) => {
-    if (mockSettings.latencyMs > 0) await delay(mockSettings.latencyMs)
-
+export const route = (
+  resolver: (info: Info) => Response | Promise<Response>,
+): HttpResponseResolver =>
+  withScenario(async (info) => {
     const before = takeFault(info.request, 'before')
     if (before) return faultResponse(before)
 
@@ -166,6 +152,6 @@ export const route =
 
     const after = takeFault(info.request, 'after')
     return after ? faultResponse(after) : response
-  }
+  })
 
 export const noContent = () => new HttpResponse(null, { status: 204 })

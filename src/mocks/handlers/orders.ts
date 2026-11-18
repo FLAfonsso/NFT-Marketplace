@@ -1,5 +1,11 @@
 import { http, HttpResponse } from 'msw'
-import { CreateOrderInput, type Order, type OrderList } from '@/contracts'
+import {
+  CreateOrderInput,
+  type Order,
+  type OrderConflict,
+  type OrderList,
+  type Quote,
+} from '@/contracts'
 import {
   mutateNft,
   nextId,
@@ -11,9 +17,15 @@ import {
 } from '../db/store'
 import type { OrderRecord } from '../db/types'
 import { deepFreeze, Eth, stableStringify } from '../db/util'
-import { API, fail, param, parseBody, requireUser, route } from './utils'
+import { IDEMPOTENCY_HEADER } from './http'
+import { createQuote } from './quote'
+import { API, fail, jsonError, param, parseBody, requireUser, route } from './utils'
 
-export const IDEMPOTENCY_HEADER = 'Idempotency-Key'
+export { IDEMPOTENCY_HEADER }
+
+type CreateResult =
+  | { kind: 'created' | 'replayed'; record: OrderRecord }
+  | { kind: 'price_changed'; quote: Quote; nftName: string }
 
 const itemKey = (i: { nftId: string; editionId: string }) => `${i.nftId}:${i.editionId}`
 
@@ -54,7 +66,7 @@ export const orderHandlers = [
       }
       const fingerprint = fingerprintOf({ ...input, idempotencyKey: key })
 
-      const result = transact((db, tx): { record: OrderRecord; replayed: boolean } => {
+      const result = transact((db, tx): CreateResult => {
         // 1. Idempotência: vale antes de qualquer outra validação, para a nova tentativa
         //    recuperar o pedido mesmo se a cotação já expirou.
         const existing = db.orders.find(
@@ -64,7 +76,7 @@ export const orderHandlers = [
           if (existing.fingerprint !== fingerprint) {
             fail('conflict', 'Esta chave de idempotência já foi usada com outro conteúdo.')
           }
-          return { record: existing, replayed: true }
+          return { kind: 'replayed', record: existing }
         }
 
         // 2. Cotação revisada.
@@ -100,21 +112,38 @@ export const orderHandlers = [
           })
         }
 
-        // 4. Preço e disponibilidade atuais.
+        // 4. Preço atual. Se mudou, a cotação é substituída por uma nova (com aviso
+        //    price_changed), que segue no corpo do 409 para o usuário revisar. A transação
+        //    é confirmada para a cotação nova existir; nada mais foi alterado até aqui.
+        const repriced = quote.items
+          .map((line) => db.nfts.find((n) => n.id === line.nftId && !new Eth(n.price).eq(line.unitPrice)))
+          .find((nft) => nft !== undefined)
+        if (repriced) {
+          delete db.quotes[quote.id]
+          const fresh = createQuote(db, tx, userCartKey(user.id), {
+            items: quote.items.map(({ nftId, editionId, quantity }) => ({ nftId, editionId, quantity })),
+            couponCode: quoteRecord.requestedCoupon ?? undefined,
+          })
+          return { kind: 'price_changed', quote: fresh, nftName: repriced.name }
+        }
+
+        // 5. Disponibilidade atual.
         const items = quote.items.map((line) => {
           const nft = db.nfts.find((n) => n.id === line.nftId)
           const edition = nft?.editions.find((e) => e.id === line.editionId)
           if (!nft || !edition) return fail('not_found', 'Um item do pedido não existe mais.')
-          if (!new Eth(nft.price).eq(line.unitPrice)) {
-            fail('conflict', `O preço de ${nft.name} mudou. Revise o pedido.`)
-          }
           if (edition.available < line.quantity) {
-            fail(
-              'conflict',
-              edition.available === 0
+            const soldOut = edition.available === 0
+            throw jsonError<OrderConflict>({
+              code: 'conflict',
+              reason: soldOut ? 'sold_out' : 'insufficient_stock',
+              message: soldOut
                 ? `A edição ${edition.name} de ${nft.name} esgotou.`
                 : `Só há ${edition.available} unidade(s) de ${nft.name}.`,
-            )
+              nftId: nft.id,
+              editionId: edition.id,
+              available: edition.available,
+            })
           }
           return {
             nftId: nft.id,
@@ -128,7 +157,7 @@ export const orderHandlers = [
           }
         })
 
-        // 5. Reserva o estoque enquanto o pagamento está pendente.
+        // 6. Reserva o estoque enquanto o pagamento está pendente.
         for (const item of items) {
           mutateNft(db, tx, item.nftId, (nft) => {
             const edition = nft.editions.find((e) => e.id === item.editionId)
@@ -167,13 +196,22 @@ export const orderHandlers = [
         // Cotação de uso único: outra chave não consegue reaproveitá-la.
         delete db.quotes[quote.id]
         tx.emit({ type: 'order.updated', order: structuredClone(order), userId: user.id, occurredAt: tx.now })
-        return { record, replayed: false }
+        return { kind: 'created', record }
       })
 
-      if (!result.replayed) scheduleSettlement(result.record)
+      if (result.kind === 'price_changed') {
+        return jsonError<OrderConflict>({
+          code: 'conflict',
+          reason: 'price_changed',
+          message: `O preço de ${result.nftName} mudou. Revise a nova cotação.`,
+          quote: result.quote,
+        })
+      }
+      const replayed = result.kind === 'replayed'
+      if (!replayed) scheduleSettlement(result.record)
       return HttpResponse.json<Order>(result.record.order, {
-        status: result.replayed ? 200 : 201,
-        headers: result.replayed ? { 'Idempotent-Replayed': 'true' } : undefined,
+        status: replayed ? 200 : 201,
+        headers: replayed ? { 'Idempotent-Replayed': 'true' } : undefined,
       })
     }),
   ),

@@ -1,8 +1,8 @@
 import { z } from 'zod'
 import { Email, PersonName } from './auth'
 import { CartItem } from './cart'
-import { EthString, Id, IsoDateTime, Quantity, Version } from './common'
-import { CouponCode } from './quote'
+import { ApiError, Count, EthString, Id, IsoDateTime, Quantity, Version } from './common'
+import { CouponCode, Quote } from './quote'
 import { Network, WalletAddress } from './wallet'
 
 export const ORDER_STATUSES = ['pending', 'confirmed', 'rejected'] as const
@@ -86,3 +86,20 @@ export type Order = z.infer<typeof Order>
 
 export const OrderList = z.object({ items: z.array(Order) })
 export type OrderList = z.infer<typeof OrderList>
+
+const OrderConflictBase = ApiError.extend({ code: z.literal('conflict') })
+
+const StockConflictFields = { nftId: Id, editionId: Id, available: Count }
+
+/**
+ * Corpo do 409 de POST /orders quando o catálogo mudou desde a cotação.
+ * - price_changed: traz a cotação nova (que substitui a antiga) para o usuário revisar.
+ * - sold_out / insufficient_stock: a edição esgotou ou não tem a quantidade pedida.
+ * Outros 409 do pedido (cotação vencida, chave reutilizada) são ApiError simples.
+ */
+export const OrderConflict = z.discriminatedUnion('reason', [
+  OrderConflictBase.extend({ reason: z.literal('price_changed'), quote: Quote }),
+  OrderConflictBase.extend({ reason: z.literal('sold_out'), ...StockConflictFields }),
+  OrderConflictBase.extend({ reason: z.literal('insufficient_stock'), ...StockConflictFields }),
+])
+export type OrderConflict = z.infer<typeof OrderConflict>
