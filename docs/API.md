@@ -175,7 +175,7 @@ Cupons: `BEMVINDO10` (10 %, teto 0.5 ETH), `MENOS005` (0.005 ETH), `BLACKFRIDAY2
 
 Catálogo: 36 NFTs (`nft_001`…`nft_036`, 4 páginas de 9), 9 coleções (Arte digital, Fotografia, Música, Arte 3D, Colecionáveis, Generativa, Jogos, Assinaturas, Utilidade), 3 redes, 4 edições por NFT (`1/1`, `1/10`, `1/50`, `ABERTA`), preços de 0.02 a 12.30 ETH, alguns NFTs totalmente esgotados e outros com edições esgotadas.
 
-NFTs nomeados no design: Emerald Ape #042 (`nft_001`, badge `RARO`, nota 4.8 com 19 avaliações), Sage Nomad #009, Neon Vessel #552 (1.99, `compareAtPrice` 2.29), Cosmic Bloom #118, Violet Nomad #314, Ivory Baron #088, Golden Beat #207 e Golden Signal #160. Violet Nomad e Ivory Baron têm estoque de pelo menos 9 unidades nas edições `1/10`, `1/50` e `ABERTA`. O seed é determinístico (versão do esquema 2: estado salvo por versões anteriores no `localStorage` é descartado).
+NFTs nomeados no design: Emerald Ape #042 (`nft_001`, badge `RARO`, nota 4.8 com 19 avaliações), Sage Nomad #009, Neon Vessel #552 (1.99, `compareAtPrice` 2.29), Cosmic Bloom #118, Violet Nomad #314, Ivory Baron #088, Golden Beat #207 e Golden Signal #160. Violet Nomad e Ivory Baron têm estoque de pelo menos 9 unidades nas edições `1/10`, `1/50` e `ABERTA`. As imagens são arquivos de `public/assets` (`/assets/Eape.png`, `Sape.png`, `Nape.png`, `Gape.png`): Emerald Ape usa Eape, Sage Nomad usa Sape, Neon Vessel e Ivory Baron usam Nape, Golden Beat e Golden Signal usam Gape; os demais alternam entre as quatro. Cada `gallery` tem 4 imagens (a principal primeiro). O seed é determinístico (versão do esquema 3: estado salvo por versões anteriores no `localStorage` é descartado).
 
 ### Controles (`window.__mocks`)
 

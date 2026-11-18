@@ -11,7 +11,7 @@ import { createRng, deepFreeze, Eth, stableStringify, toEthString, transactionRe
  * - bruno@example.com
  */
 
-export const SCHEMA_VERSION = 2
+export const SCHEMA_VERSION = 3
 const RNG_SEED = 20261101
 /** "Agora" do cenário: datas do seed são relativas a ele. */
 const SEED_NOW = Date.parse('2026-11-01T12:00:00.000Z')
@@ -177,22 +177,27 @@ const ATTRIBUTE_TRAITS = {
   Raridade: ['Comum', 'Incomum', 'Rara', 'Épica'],
 } as const
 
-const svgImage = (title: string, hueA: number, hueB: number, variant: number) => {
-  const shape =
-    variant % 3 === 0
-      ? '<circle cx="300" cy="300" r="170" fill="white" fill-opacity="0.18"/>'
-      : variant % 3 === 1
-        ? '<rect x="130" y="130" width="340" height="340" rx="40" fill="white" fill-opacity="0.18" transform="rotate(12 300 300)"/>'
-        : '<polygon points="300,110 490,450 110,450" fill="white" fill-opacity="0.18"/>'
-  const svg =
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600">` +
-    `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
-    `<stop offset="0" stop-color="hsl(${hueA} 80% 55%)"/>` +
-    `<stop offset="1" stop-color="hsl(${hueB} 75% 35%)"/></linearGradient></defs>` +
-    `<rect width="600" height="600" fill="url(#g)"/>${shape}` +
-    `<text x="300" y="330" font-family="sans-serif" font-size="96" font-weight="700" ` +
-    `text-anchor="middle" fill="white" fill-opacity="0.9">${title}</text></svg>`
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+/** Arquivos de public/assets usados como arte dos NFTs. */
+const ASSET_IMAGES = ['Eape', 'Sape', 'Nape', 'Gape'] as const
+type AssetImage = (typeof ASSET_IMAGES)[number]
+
+/** Arte principal dos NFTs nomeados (docs/design/screens.md, seção Assets). */
+const NAMED_IMAGE: Record<string, AssetImage> = {
+  Emerald_Ape: 'Eape',
+  Sage_Nomad: 'Sape',
+  Neon_Vessel: 'Nape',
+  Ivory_Baron: 'Nape',
+  Golden_Beat: 'Gape',
+  Golden_Signal: 'Gape',
+}
+
+/** Galeria de 4 imagens: a principal primeiro, depois as outras artes em ordem fixa. */
+const buildGallery = (name: string, main: AssetImage) => {
+  const start = ASSET_IMAGES.indexOf(main)
+  return [0, 1, 2, 3].map((v) => ({
+    url: `/assets/${ASSET_IMAGES[(start + v) % ASSET_IMAGES.length]}.png`,
+    alt: `${name}, ${v === 0 ? 'arte principal' : `visão ${v + 1}`}`,
+  }))
 }
 
 const pad = (n: number, size = 3) => String(n).padStart(size, '0')
@@ -271,8 +276,9 @@ const buildNfts = (): Nft[] => {
     const price =
       named?.price ??
       (i === MIN_PRICE_INDEX ? '0.02' : i === MAX_PRICE_INDEX ? '12.30' : generatedPrice)
-    const hueA = rng.int(0, 359)
-    const hueB = (hueA + rng.int(40, 160)) % 360
+    // Leituras mantidas para a sequência do PRNG (e o seed) não mudar.
+    rng.int(0, 359)
+    rng.int(40, 160)
     const ratingAverage = rng.int(38, 50) / 10
     const ratingCount = rng.int(3, 240)
     const rating = named?.rating ?? { average: ratingAverage, count: ratingCount }
@@ -285,10 +291,10 @@ const buildNfts = (): Nft[] => {
       value: rng.pick(values),
     }))
 
-    const gallery = [0, 1, 2, 3].map((v) => ({
-      url: svgImage(tag, (hueA + v * 50) % 360, (hueB + v * 30) % 360, i + v),
-      alt: `${name}, ${v === 0 ? 'arte principal' : `visão ${v + 1}`}`,
-    }))
+    const gallery = buildGallery(
+      name,
+      NAMED_IMAGE[`${adjective}_${noun}`] ?? ASSET_IMAGES[i % ASSET_IMAGES.length],
+    )
 
     nfts.push({
       id,
