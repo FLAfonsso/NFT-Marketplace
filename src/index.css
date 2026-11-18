@@ -120,3 +120,6 @@
 @media (prefers-reduced-motion: reduce) {
   .shimmer { animation: none; }
 }
+
+/* Bone sobre superfície (linha do carrinho, painel mobile): mais claro que o fundo do card. */
+.shimmer-strong { background-color: var(--surface-strong); }

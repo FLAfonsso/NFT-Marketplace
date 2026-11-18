@@ -1,6 +1,7 @@
 import type { LoginInput, RegisterInput, Session, User } from '@/contracts'
 import { isApiRequestError, setTokenGetter } from '@/lib/api'
 import { queryClient } from '@/lib/queryClient'
+import { queryKeys } from '@/lib/queryKeys'
 import { closeSocket, openSocket } from '@/features/realtime/socket'
 import { authApi } from './authApi'
 import { tokenStorage } from './tokenStorage'
@@ -36,6 +37,8 @@ const applySession = (session: Session) => {
   tokenStorage.set(session.token)
   setState({ status: 'authenticated', user: session.user, token: session.token })
   openSocket(session.token)
+  // Login/cadastro mesclam o carrinho de visitante no do usuário: busca de novo.
+  void queryClient.invalidateQueries({ queryKey: queryKeys.cartAll })
 }
 
 /** Encerra localmente (logout, 401, token inválido). */
@@ -43,6 +46,8 @@ const endSession = () => {
   tokenStorage.clear()
   discardSessionData()
   setState({ status: 'anonymous', user: null, token: null })
+  // O cache foi limpo; quem observa o carrinho busca o do visitante.
+  void queryClient.invalidateQueries({ queryKey: queryKeys.cartAll })
 }
 
 let restoring: Promise<void> | null = null

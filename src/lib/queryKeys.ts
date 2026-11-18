@@ -16,7 +16,12 @@ export const queryKeys = {
     detail: (id: string) => ['nfts', 'detail', id] as const,
   },
 
+  /** Todos os carrinhos (de qualquer dono): usado para invalidar após login e logout. */
+  cartAll: ['cart'] as const,
   cart: (owner: CartOwner) => ['cart', owner] as const,
+  /** Cotação do carrinho: por dono, itens e cupom. */
+  cartQuote: (owner: CartOwner, request: { items: readonly unknown[]; couponCode?: string }) =>
+    ['cart', owner, 'quote', request] as const,
 
   user: (userId: string) => ['user', userId] as const,
   profile: (userId: string) => ['user', userId, 'profile'] as const,

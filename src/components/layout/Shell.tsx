@@ -18,8 +18,8 @@ export function Shell() {
 
   if (!isDesktop && AUTH_PATHS.has(pathname)) return <Outlet />
 
-  // O detalhe do NFT tem a própria barra inferior de compra no mobile.
-  const hideMobileNav = !isDesktop && pathname.startsWith('/nft/')
+  // Detalhe do NFT e carrinho têm o próprio painel inferior no mobile.
+  const hideMobileNav = !isDesktop && (pathname.startsWith('/nft/') || pathname === '/cart')
 
   return (
     <div className="flex min-h-dvh flex-col">

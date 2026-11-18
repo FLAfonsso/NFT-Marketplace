@@ -1,4 +1,5 @@
 import { Session, type LoginInput, type RegisterInput } from '@/contracts'
+import { getGuestId } from '@/features/cart/guestId'
 import { api, requestVoid } from '@/lib/api'
 
 export const authApi = {
@@ -8,7 +9,10 @@ export const authApi = {
       headers: { Authorization: `Bearer ${token}` },
       skipAuthRedirect: true,
     }),
-  login: (input: LoginInput) => api.post(Session, '/auth/login', input),
-  register: (input: RegisterInput) => api.post(Session, '/auth/register', input),
+  /** O id do carrinho de visitante vai junto para a API mesclar os itens no carrinho do usuário. */
+  login: (input: LoginInput) =>
+    api.post(Session, '/auth/login', input, { headers: { 'X-Guest-Cart-Id': getGuestId() } }),
+  register: (input: RegisterInput) =>
+    api.post(Session, '/auth/register', input, { headers: { 'X-Guest-Cart-Id': getGuestId() } }),
   logout: () => requestVoid({ method: 'POST', url: '/auth/logout', skipAuthRedirect: true }),
 }

@@ -1,10 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PageSkeleton } from '@/components/PageSkeleton'
+import { CartPage } from '@/features/cart/components/CartPage'
 
+/** Pública: visitante e usuário autenticado têm carrinho. */
 export const Route = createFileRoute('/cart')({
   component: CartPage,
 })
-
-function CartPage() {
-  return <PageSkeleton title="Carrinho" />
-}
