@@ -66,6 +66,7 @@ await page.reload()
 | `order-timeout` | Todo pedido **novo** é criado (estoque reservado, liquidação agendada), mas a resposta 201 nunca chega: o cliente vê timeout. Reenviar com a **mesma** `Idempotency-Key` responde 200 com o mesmo pedido e `Idempotent-Replayed: true`. Uma chave nova cria outro pedido, que também fica sem resposta: é assim que a duplicidade aparece. | `?scenario=order-timeout`; confirmar, esperar o timeout do Axios, tentar de novo |
 | `payment-confirmed` | Todo pedido pendente é confirmado, mesmo com carteira terminada em `dead`. | `?scenario=payment-confirmed`; comprar com a carteira "Sem saldo" do Bruno |
 | `payment-rejected` | Todo pedido pendente é recusado (`rejectionReason`), e o estoque reservado é devolvido. | `?scenario=payment-rejected`; comprar com qualquer carteira |
+| `wallet-rejected` | A primeira chamada de `POST /api/wallets/:id/connect` do cenário responde 403 `forbidden` (conexão recusada na carteira). As seguintes conectam normalmente. | `?scenario=wallet-rejected`; no checkout, "Conectar carteira" (recusa) e depois "Tentar de novo" (conecta) |
 
 ### Detalhes e limites
 

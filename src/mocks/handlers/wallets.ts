@@ -1,5 +1,11 @@
 import { http, HttpResponse } from 'msw'
-import { WalletInput, type Wallet, type WalletList } from '@/contracts'
+import {
+  WalletConnectInput,
+  WalletInput,
+  type Wallet,
+  type WalletConnection,
+  type WalletList,
+} from '@/contracts'
 import { nextId, read, transact } from '../db/store'
 import type { DbState } from '../db/types'
 import { API, fail, param, parseBody, requireUser, route } from './utils'
@@ -82,6 +88,30 @@ export const walletHandlers = [
         return wallet
       })
       return HttpResponse.json(wallet)
+    }),
+  ),
+
+  // Conexão simulada (checkout). Sem efeito no banco; a recusa vem do cenário wallet-rejected.
+  http.post(
+    `${API}/wallets/:id/connect`,
+    route(async ({ request, params }) => {
+      const { user } = requireUser(request)
+      const walletId = param(params, 'id')
+      const { provider } = await parseBody(request, WalletConnectInput)
+      const db = read()
+      const wallet = (db.wallets[user.id] ?? []).find((w) => w.id === walletId)
+      if (!wallet) {
+        return ownedByOther(db, user.id, walletId)
+          ? fail('forbidden', 'Esta carteira pertence a outro usuário.')
+          : fail('not_found', 'Carteira não encontrada.')
+      }
+      return HttpResponse.json<WalletConnection>({
+        walletId,
+        provider,
+        address: wallet.address,
+        network: wallet.network,
+        connectedAt: new Date().toISOString(),
+      })
     }),
   ),
 ]

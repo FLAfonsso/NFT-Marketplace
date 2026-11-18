@@ -79,3 +79,17 @@ export type Wallet = z.infer<typeof Wallet>
 
 export const WalletList = z.object({ items: z.array(Wallet) })
 export type WalletList = z.infer<typeof WalletList>
+
+/** Pedido de conexão simulada de uma carteira cadastrada com um provedor (checkout). */
+export const WalletConnectInput = z.object({ provider: WalletType })
+export type WalletConnectInput = z.infer<typeof WalletConnectInput>
+
+/** Conexão aceita pela carteira simulada. Recusa responde 403 `forbidden`. */
+export const WalletConnection = z.object({
+  walletId: Id,
+  provider: WalletType,
+  address: WalletAddress,
+  network: Network,
+  connectedAt: IsoDateTime,
+})
+export type WalletConnection = z.infer<typeof WalletConnection>

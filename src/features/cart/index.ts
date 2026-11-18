@@ -1,2 +1,8 @@
 export { useCart } from './useCart'
 export { useAddToCart } from './useAddToCart'
+export { cartApi } from './cartApi'
+export { useQuote, toQuoteRequest } from './useQuote'
+export { useCartLines, itemKey, type CartLine } from './useCartLines'
+export { useCartRealtime } from './useCartRealtime'
+export { CouponForm, CouponSkeleton } from './components/CouponForm'
+export { Bone } from './components/CartItemRow'

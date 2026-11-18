@@ -57,6 +57,7 @@ const leafPaths = (value: unknown, prefix = ''): string[] => {
 
 const GUARDED_ID = /^\/api\/(orders|wallets)\/[^/]+$/
 const NFT_DETAIL = /^\/api\/nfts\/[^/]+$/
+const WALLET_CONNECT = /^\/api\/wallets\/[^/]+\/connect$/
 /** client-errors não bloqueia entrar e sair, para dar para chegar aos formulários. */
 const AUTH_FLOW = new Set([`${API}/auth/login`, `${API}/auth/logout`])
 
@@ -220,5 +221,17 @@ export const SCENARIOS: Record<ScenarioName, Scenario> = {
   'payment-rejected': {
     summary: 'Todo pedido pendente é recusado e o estoque reservado é devolvido.',
     settlement: 'rejected',
+  },
+
+  'wallet-rejected': {
+    summary:
+      'A primeira tentativa de conectar uma carteira no checkout é recusada (403); as seguintes conectam.',
+    before: (ctx) => {
+      if (ctx.method !== 'POST' || !WALLET_CONNECT.test(ctx.path) || ctx.runtime.rejected) {
+        return undefined
+      }
+      ctx.runtime.rejected = true
+      return errorResponse('forbidden', 'A conexão foi recusada na carteira.')
+    },
   },
 }

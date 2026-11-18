@@ -154,6 +154,18 @@ Pagamento recusado de forma determinística: carteira cujo endereço termina em 
 - Sempre existe exatamente uma carteira `primary`: a primeira é promovida automaticamente; promover outra rebaixa a atual; rebaixar a única principal → 409.
 - Endereço duplicado é comparado sem caixa.
 
+### Conexão simulada (checkout)
+
+| Método | Caminho | Auth | Entrada | Saída | Erros |
+|---|---|---|---|---|---|
+| POST | `/wallets/:id/connect` | sim | `WalletConnectInput` (`{ provider: WalletType }`) | 200 `WalletConnection` | 400, 401, 403 (recusa ou carteira de outro usuário), 404 |
+
+- Simula o pedido de conexão ao provedor (WalletConnect, MetaMask, Coinbase Wallet) para uma carteira cadastrada. Não altera o banco.
+- `WalletConnection` = `walletId`, `provider`, `address`, `network` (os da carteira) e `connectedAt`.
+- Recusa do usuário na carteira: 403 `forbidden` ("A conexão foi recusada na carteira."), vinda do cenário `wallet-rejected` ([SCENARIOS.md](SCENARIOS.md)).
+- Desconectar é só local (o cliente esquece a conexão); não há rota.
+- Adicionado para a tela de Pagamento, que exige carteira conectada para confirmar a compra. Schemas em `src/contracts/wallet.ts`.
+
 ---
 
 ## Ambiente de mocks

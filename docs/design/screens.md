@@ -27,6 +27,23 @@ filtros em Sheet). Desktop >= 1024. Auditar em 390, 768 e 1440.
   (Alterar/Remover), Alterar senha (atual, nova, confirmar), Salvar.
 - Carteiras: Carteira principal (formulário) e Carteira secundária (Adicionar, "Igual à principal").
 
+## Pagamento: decisões
+- Mobile: o print só mostra carteiras, "Carteira e rede", total e Confirmar compra, mas o
+  formulário do colecionador é obrigatório. Ele aparece como seção recolhível "Dados do
+  colecionador", pré-preenchida (perfil + carteira principal), acima das carteiras. Fechada,
+  mostra "nome · e-mail" ou quantos campos precisam de atenção; abre sozinha quando há erro
+  (validação local, "Revisar dados" ou erro de campo da API). Depois das carteiras vem "Seus
+  NFTs" (itens, cupom, valores) e, no painel fixo inferior, Total e Confirmar compra.
+- Desktop: formulário à esquerda; à direita "Seus NFTs", carteiras cadastradas, "Carteira e
+  rede", status da conexão e Confirmar compra.
+- "Carteira e rede" é o provedor da conexão e fica sincronizado com o campo "Tipo de carteira".
+  Escolher uma carteira cadastrada preenche endereço, rede e tipo com os dela.
+- "Usar outra carteira?" torna obrigatório o campo "ENS ou carteira secundária".
+- Nome ENS: digita-se só o nome; o sufixo ".eth" é fixo ao lado (o layout mostra um seletor
+  com uma única opção).
+- Confirmar compra só habilita com formulário válido, carteira conectada e cotação válida; o
+  motivo aparece abaixo do botão.
+
 ## Fora do escopo: visível, mas sem fingir sucesso
 Botão ou link desabilitado (aria-disabled) com aviso "Indisponível nesta versão":
 Criadores, Aprenda, Diário da Cunhagem (Ler mais), newsletter (Enviar), rodapé de ajuda,

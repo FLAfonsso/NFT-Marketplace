@@ -2,6 +2,7 @@ import type { LoginInput, RegisterInput, Session, User } from '@/contracts'
 import { isApiRequestError, setTokenGetter } from '@/lib/api'
 import { queryClient } from '@/lib/queryClient'
 import { queryKeys } from '@/lib/queryKeys'
+import { clearCheckoutDrafts } from '@/features/checkout/storage'
 import { closeSocket, openSocket } from '@/features/realtime/socket'
 import { authApi } from './authApi'
 import { tokenStorage } from './tokenStorage'
@@ -114,6 +115,9 @@ export const sessionStore = {
     } catch {
       // Logout é local mesmo se a API falhar; o token some do cliente.
     } finally {
+      // Rascunho do checkout tem dados pessoais: sai junto com a sessão. A expiração (401)
+      // não passa por aqui, então o rascunho sobrevive para a retomada depois do login.
+      clearCheckoutDrafts()
       endSession()
     }
   },

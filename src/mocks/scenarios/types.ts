@@ -17,6 +17,7 @@ export const SCENARIO_NAMES = [
   'order-timeout',
   'payment-confirmed',
   'payment-rejected',
+  'wallet-rejected',
 ] as const
 
 export type ScenarioName = (typeof SCENARIO_NAMES)[number]
