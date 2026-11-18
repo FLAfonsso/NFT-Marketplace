@@ -1,6 +1,7 @@
 import { setupWorker } from 'msw/browser'
 import { mockControl, type MockControl } from './control'
 import { handlers } from './handlers'
+import { realtimeHandler } from './realtime/socket'
 
 declare global {
   interface Window {
@@ -8,7 +9,8 @@ declare global {
   }
 }
 
-export const worker = setupWorker(...handlers)
+/** REST (src/mocks/handlers) e Socket.IO simulado (src/mocks/realtime). */
+export const worker = setupWorker(...handlers, realtimeHandler)
 
 /** Liga o MSW quando VITE_ENABLE_MOCKS=true. Deve terminar antes de renderizar o app. */
 export async function enableMocking() {

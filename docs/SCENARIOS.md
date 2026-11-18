@@ -29,7 +29,7 @@ Só existe quando `VITE_ENABLE_MOCKS=true`, inclusive no build de produção.
 | `setScenario(nome, { seed?, latencyMs?, failures?, afterRequests? })` | ativa o cenário do zero (runtime zerado), mesmo se já for o ativo. Sem `seed`, usa 1. Nome inválido lança erro |
 | `reset()` | restaura o banco do seed, as configurações padrão e o cenário `default` |
 
-Os controles finos (`configure`, `failNext`, `expireSessions`, `setNftPrice`, `setEditionAvailable`) continuam disponíveis e se combinam com qualquer cenário (ver API.md).
+Os controles finos (`configure`, `failNext`, `expireSessions`, `setNftPrice`, `setEditionAvailable`) continuam disponíveis e se combinam com qualquer cenário (ver API.md). Os controles de tempo real (`emitNftUpdate`, `emitOrderUpdate`, `emitDuplicate`, `emitStale`, `disconnectSockets`, `reconnectSockets`, `listSockets`, `probe`) estão em [REALTIME.md](REALTIME.md).
 
 **Recomendado:** troque de cenário e recarregue a página, para o app buscar tudo de novo no novo estado:
 

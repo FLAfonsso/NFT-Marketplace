@@ -180,14 +180,21 @@ export const forceSettlementOutcome = (outcome: SettlementOutcome | null) => {
   forcedOutcome = outcome
 }
 
-const settleOrder = (orderId: string) => {
+/**
+ * Liquida um pedido pendente: devolve o estoque (recusa) ou baixa o carrinho (confirmação),
+ * incrementa a versão e emite `order.updated`. Sem `outcome`, vale o cenário ou a regra da
+ * carteira. Devolve o pedido atualizado, ou undefined se ele não existe ou já é terminal.
+ */
+export const settleOrder = (orderId: string, outcome?: SettlementOutcome): Order | undefined => {
+  clearTimeout(timers.get(orderId))
   timers.delete(orderId)
-  transact((db, tx) => {
+  return transact((db, tx) => {
     const record = db.orders.find((r) => r.order.id === orderId)
-    if (!record || record.order.status !== 'pending') return
+    if (!record || record.order.status !== 'pending') return undefined
     const { order } = record
-    const rejected = forcedOutcome
-      ? forcedOutcome === 'rejected'
+    const decided = outcome ?? forcedOutcome
+    const rejected = decided
+      ? decided === 'rejected'
       : order.snapshot.walletAddress.toLowerCase().endsWith(REJECTING_ADDRESS_SUFFIX)
 
     if (rejected) {
@@ -229,6 +236,7 @@ const settleOrder = (orderId: string) => {
       userId: record.userId,
       occurredAt: tx.now,
     })
+    return structuredClone(record.order)
   })
 }
 

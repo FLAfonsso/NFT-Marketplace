@@ -1,5 +1,6 @@
 import { expireSessions } from './db/auth'
 import { updateNft } from './db/store'
+import { realtimeControl } from './realtime/control'
 import { getScenario, listScenarios, reset, setScenario } from './scenarios'
 import { faults, mockSettings, type Fault, type MockSettings } from './settings'
 
@@ -35,6 +36,11 @@ export const mockControl = {
       const edition = nft.editions.find((e) => e.id === editionId)
       if (edition) edition.available = Math.max(0, Math.min(edition.supply, Math.trunc(available)))
     }),
+  /**
+   * Tempo real (docs/REALTIME.md): emitNftUpdate, emitOrderUpdate, emitDuplicate, emitStale,
+   * disconnectSockets, reconnectSockets, listSockets e probe.
+   */
+  ...realtimeControl,
 }
 
 export type MockControl = typeof mockControl

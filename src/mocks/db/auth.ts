@@ -100,21 +100,30 @@ export const bearerToken = (request: Request) => {
   return match?.[1] ?? null
 }
 
-/** Resolve a sessão do cabeçalho Authorization. Sessões vencidas são removidas. */
-export const checkSession = (request: Request): SessionCheck => {
-  const token = bearerToken(request)
+/**
+ * Resolve um token de sessão sem alterar o estado. Usado pelo REST (via checkSession)
+ * e pelo handshake e pela entrega de eventos do Socket.IO (src/mocks/realtime).
+ */
+export const checkToken = (token: string | null | undefined): SessionCheck => {
   if (!token) return { status: 'missing' }
   const session = read().sessions[token]
   if (!session) return { status: 'invalid' }
-  if (Date.parse(session.expiresAt) <= Date.now()) {
-    transact((db) => {
-      delete db.sessions[token]
-    })
-    return { status: 'expired' }
-  }
+  if (Date.parse(session.expiresAt) <= Date.now()) return { status: 'expired' }
   const user = read().users.find((u) => u.id === session.userId)
   if (!user) return { status: 'invalid' }
   return { status: 'ok', user, session }
+}
+
+/** Resolve a sessão do cabeçalho Authorization. Sessões vencidas são removidas. */
+export const checkSession = (request: Request): SessionCheck => {
+  const token = bearerToken(request)
+  const check = checkToken(token)
+  if (check.status === 'expired' && token) {
+    transact((db) => {
+      delete db.sessions[token]
+    })
+  }
+  return check
 }
 
 /** Encerra uma sessão (idempotente). */

@@ -6,6 +6,7 @@ import {
   reset as resetDb,
   transact,
 } from '../db/store'
+import { resetRealtime } from '../realtime/socket'
 import { mockSettings } from '../settings'
 import { applyScenarioData, needsDataSync } from './data'
 import { SCENARIOS } from './definitions'
@@ -162,9 +163,13 @@ export const setScenario = (name: ScenarioName, options: ScenarioOptions & { see
   return getScenario()
 }
 
-/** Restaura o banco do seed, as configurações padrão e o cenário "default". */
+/**
+ * Restaura o banco do seed (com as versions do seed), as configurações padrão e o cenário
+ * "default". No tempo real, fecha as conexões, sai de uma queda simulada e esquece o histórico.
+ */
 export const reset = () => {
   resetDb()
+  resetRealtime()
   state = fresh()
   sync()
   return getScenario()
