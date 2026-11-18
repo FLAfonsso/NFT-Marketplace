@@ -114,7 +114,7 @@ export const SCENARIOS: Record<ScenarioName, Scenario> = {
       if (ctx.method === 'GET' && NFT_DETAIL.test(ctx.path)) {
         return errorResponse('not_found', 'NFT não encontrado.')
       }
-      if ((ctx.method === 'GET' || ctx.method === 'PUT') && GUARDED_ID.test(ctx.path)) {
+      if ((['GET', 'PUT', 'PATCH'].includes(ctx.method)) && GUARDED_ID.test(ctx.path)) {
         return errorResponse('forbidden', 'Este recurso pertence a outro usuário.')
       }
       if (!['POST', 'PUT', 'PATCH'].includes(ctx.method) || AUTH_FLOW.has(ctx.path)) return undefined

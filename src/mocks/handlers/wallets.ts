@@ -62,7 +62,9 @@ export const walletHandlers = [
     }),
   ),
 
-  http.put(
+  // PATCH é o método do contrato; PUT segue aceito como alias.
+  ...['patch', 'put'].map((method) =>
+    http[method as 'patch' | 'put'](
     `${API}/wallets/:id`,
     route(async ({ request, params }) => {
       const { user } = requireUser(request)
@@ -89,6 +91,7 @@ export const walletHandlers = [
       })
       return HttpResponse.json(wallet)
     }),
+    ),
   ),
 
   // Conexão simulada (checkout). Sem efeito no banco; a recusa vem do cenário wallet-rejected.

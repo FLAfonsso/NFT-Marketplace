@@ -10,24 +10,13 @@ import {
   WalletType,
   type CollectorFormFields,
 } from '@/contracts'
+import { ensLabel, optionalText, required } from '@/lib/formSchemas'
 
 /**
  * Formulário "Perfil do colecionador". Reaproveita os schemas de campo de src/contracts e só
  * troca a mensagem do campo vazio. O nome ENS é digitado sem o sufixo ".eth" (o layout mostra o
  * sufixo ao lado do campo) e volta completo na saída.
  */
-const required = (message: string) => z.string().trim().min(1, message)
-
-const ENS_LABEL = /^[a-z0-9-]+(\.[a-z0-9-]+)*$/i
-const stripEth = (value: string) => value.trim().replace(/\.eth$/i, '')
-
-const optionalText = (schema: z.ZodType<string, string>) =>
-  z
-    .string()
-    .trim()
-    .transform((value) => (value === '' ? undefined : value))
-    .pipe(schema.optional())
-
 export const checkoutFormSchema = z
   .object({
     /** Carteira cadastrada escolhida (Reserva, Principal...). */
@@ -45,14 +34,7 @@ export const checkoutFormSchema = z
     walletType: required('Selecione o tipo de carteira').pipe(WalletType),
     email: required('Informe o e-mail').pipe(Email),
     referralCode: required('Informe o código de indicação').pipe(ReferralCode),
-    ensLabel: required('Informe o nome ENS')
-      .transform(stripEth)
-      .pipe(
-        z
-          .string()
-          .regex(ENS_LABEL, 'Use letras, números ou hífen (ex.: ana)')
-          .transform((label) => `${label.toLowerCase()}.eth`),
-      ),
+    ensLabel: ensLabel(),
     /** "Usar outra carteira?": exige o ENS ou endereço da carteira secundária. */
     useOtherWallet: z.boolean(),
     note: optionalText(z.string().max(280, 'A observação deve ter no máximo 280 caracteres')),

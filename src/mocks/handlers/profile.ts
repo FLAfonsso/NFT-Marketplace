@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse, type HttpResponseResolver } from 'msw'
 import { ChangePasswordInput, UpdateProfileInput, type Profile, type Wallet } from '@/contracts'
 import { hashPassword, verifyPassword } from '../db/auth'
 import { read, transact } from '../db/store'
@@ -20,6 +20,28 @@ const toProfile = (user: UserRecord, wallets: readonly Wallet[]): Profile => ({
   version: user.version,
 })
 
+const AVATAR_TYPES = ['image/png', 'image/jpeg', 'image/webp']
+const AVATAR_MAX_BYTES = 2 * 1024 * 1024
+
+async function toDataUrl(file: File) {
+  const bytes = new Uint8Array(await file.arrayBuffer())
+  let binary = ''
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
+  }
+  return `data:${file.type};base64,${btoa(binary)}`
+}
+
+const setAvatar = (userId: string, avatarUrl: string | null) =>
+  transact((db, tx) => {
+    const record = db.users.find((u) => u.id === userId)
+    if (!record) return fail('not_found', 'Usuário não encontrado.')
+    record.avatarUrl = avatarUrl
+    record.updatedAt = tx.now
+    record.version += 1
+    return toProfile(record, db.wallets[userId] ?? [])
+  })
+
 const usernameTaken = () =>
   fail('conflict', 'Este nome de usuário já está em uso.', {
     username: ['Nome de usuário já em uso'],
@@ -29,6 +51,12 @@ const emailTaken = () =>
   fail('conflict', 'Este e-mail já está em uso por outra conta.', {
     email: ['E-mail já cadastrado'],
   })
+
+/** PATCH é o método do contrato; PUT segue aceito como alias. */
+const both = (path: string, resolver: HttpResponseResolver) => [
+  http.patch(path, resolver),
+  http.put(path, resolver),
+]
 
 export const profileHandlers = [
   http.get(
@@ -40,7 +68,7 @@ export const profileHandlers = [
   ),
 
   /** Atualiza dados e avatar. `avatarUrl` ausente mantém o atual; null remove. */
-  http.put(
+  ...both(
     `${API}/profile`,
     route(async ({ request }) => {
       const { user } = requireUser(request)
@@ -86,7 +114,7 @@ export const profileHandlers = [
   ),
 
   /** Troca a senha e encerra as outras sessões do usuário (a atual continua válida). */
-  http.put(
+  ...both(
     `${API}/profile/password`,
     route(async ({ request }) => {
       const { user, session } = requireUser(request)
@@ -105,6 +133,50 @@ export const profileHandlers = [
         }
       })
       return noContent()
+    }),
+  ),
+
+  /** Avatar: multipart com o campo `file` (png, jpeg ou webp, até 2 MB). Responde o Profile. */
+  http.put(
+    `${API}/profile/avatar`,
+    route(async ({ request }) => {
+      const { user } = requireUser(request)
+      let file: FormDataEntryValue | null = null
+      try {
+        file = (await request.formData()).get('file')
+      } catch {
+        // Corpo que não é multipart cai na validação abaixo.
+      }
+      if (!(file instanceof File)) {
+        return fail('validation', 'Envie a imagem no campo "file".', {
+          avatar: ['Selecione uma imagem'],
+        })
+      }
+      if (!AVATAR_TYPES.includes(file.type)) {
+        return fail('validation', 'Formato de imagem não aceito.', {
+          avatar: ['Use uma imagem PNG, JPG ou WebP'],
+        })
+      }
+      if (file.size > AVATAR_MAX_BYTES) {
+        return fail('validation', 'A imagem do avatar é grande demais.', {
+          avatar: ['A imagem deve ter até 2 MB'],
+        })
+      }
+      const avatarUrl = await toDataUrl(file)
+      if (avatarUrl.length > AVATAR_MAX_LENGTH) {
+        return fail('validation', 'A imagem do avatar é grande demais.', {
+          avatar: ['Reduza a imagem (a simulação guarda até ~500 KB)'],
+        })
+      }
+      return HttpResponse.json(setAvatar(user.id, avatarUrl))
+    }),
+  ),
+
+  http.delete(
+    `${API}/profile/avatar`,
+    route(({ request }) => {
+      const { user } = requireUser(request)
+      return HttpResponse.json(setAvatar(user.id, null))
     }),
   ),
 ]

@@ -1,8 +1,8 @@
-import { ChevronDownIcon } from 'lucide-react'
-import { useId, type ComponentProps, type ReactNode } from 'react'
+import { ChevronDownIcon, EyeIcon, EyeOffIcon } from 'lucide-react'
+import { useId, useState, type ComponentProps, type ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 
-const control =
+export const controlClass =
   'w-full rounded-sm border border-border bg-transparent px-3 text-sm text-foreground outline-none transition-colors placeholder:text-placeholder focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30 aria-invalid:border-destructive aria-invalid:ring-destructive/20 disabled:opacity-50'
 
 interface FieldShellProps {
@@ -22,7 +22,7 @@ interface FieldShellProps {
 }
 
 /** Rótulo com asterisco, controle e mensagem de erro ligada por aria-describedby. */
-function FieldShell({ label, required, error, hint, className, hideLabel, children }: FieldShellProps) {
+export function FieldShell({ label, required, error, hint, className, hideLabel, children }: FieldShellProps) {
   const id = useId()
   const errorId = `${id}-error`
   const hintId = `${id}-hint`
@@ -67,13 +67,15 @@ export function TextField({
   className,
   hideLabel,
   suffix,
+  leading,
   ...props
-}: Shared & ComponentProps<'input'> & { suffix?: ReactNode }) {
+}: Shared & ComponentProps<'input'> & { suffix?: ReactNode; leading?: ReactNode }) {
   return (
     <FieldShell {...{ label, required, error, hint, className, hideLabel }}>
       {(a11y) => (
         <div className="flex items-stretch gap-2">
-          <input {...props} {...a11y} className={cn(control, 'h-10')} />
+          {leading}
+          <input {...props} {...a11y} className={cn(controlClass, 'h-10 min-w-0 flex-1')} />
           {suffix}
         </div>
       )}
@@ -104,7 +106,7 @@ export function SelectField({
             {...props}
             {...a11y}
             className={cn(
-              control,
+              controlClass,
               'h-10 appearance-none bg-background pr-9 has-[option[value=""]:checked]:text-placeholder',
             )}
           >
@@ -138,7 +140,47 @@ export function TextareaField({
 }: Shared & ComponentProps<'textarea'>) {
   return (
     <FieldShell {...{ label, required, error, hint, className, hideLabel }}>
-      {(a11y) => <textarea {...props} {...a11y} className={cn(control, 'min-h-36 resize-y py-2')} />}
+      {(a11y) => <textarea {...props} {...a11y} className={cn(controlClass, 'min-h-36 resize-y py-2')} />}
+    </FieldShell>
+  )
+}
+
+/** Campo de senha com botão de mostrar e ocultar. */
+export function PasswordField({
+  label,
+  required,
+  error,
+  hint,
+  className,
+  hideLabel,
+  ...props
+}: Shared & Omit<ComponentProps<'input'>, 'type'>) {
+  const [shown, setShown] = useState(false)
+  return (
+    <FieldShell {...{ label, required, error, hint, className, hideLabel }}>
+      {(a11y) => (
+        <div className="relative">
+          <input
+            {...props}
+            {...a11y}
+            type={shown ? 'text' : 'password'}
+            className={cn(controlClass, 'h-10 pr-11')}
+          />
+          <button
+            type="button"
+            onClick={() => setShown((value) => !value)}
+            aria-label={shown ? `Ocultar ${label.toLowerCase()}` : `Mostrar ${label.toLowerCase()}`}
+            aria-pressed={shown}
+            className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {shown ? (
+              <EyeIcon className="size-4" aria-hidden="true" />
+            ) : (
+              <EyeOffIcon className="size-4" aria-hidden="true" />
+            )}
+          </button>
+        </div>
+      )}
     </FieldShell>
   )
 }

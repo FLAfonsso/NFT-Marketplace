@@ -3,7 +3,7 @@ import { NETWORKS, WALLET_TYPES } from '@/contracts'
 import { cn } from '@/lib/utils'
 import { NETWORK_LABELS } from '../labels'
 import type { CheckoutFormOutput, CheckoutFormValues } from '../schema'
-import { SelectField, TextareaField, TextField } from './FormField'
+import { SelectField, TextareaField, TextField } from '@/components/FormField'
 
 const networkOptions = NETWORKS.map((n) => ({ value: n, label: NETWORK_LABELS[n] }))
 const walletTypeOptions = WALLET_TYPES.map((t) => ({ value: t, label: t }))

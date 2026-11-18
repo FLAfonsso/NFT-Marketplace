@@ -132,8 +132,13 @@ Pagamento recusado de forma determinística: carteira cujo endereço termina em 
 | Método | Caminho | Auth | Entrada | Saída | Erros |
 |---|---|---|---|---|---|
 | GET | `/profile` | sim | — | 200 `Profile` | 401 |
-| PUT | `/profile` | sim | `UpdateProfileInput` | 200 `Profile` | 400, 401, 409 (`fieldErrors.email`, `username` ou `walletNickname`) |
-| PUT | `/profile/password` | sim | `ChangePasswordInput` | 204 | 400 (`fieldErrors.currentPassword` quando a atual está errada), 401 |
+| PATCH | `/profile` | sim | `UpdateProfileInput` | 200 `Profile` | 400, 401, 409 (`fieldErrors.email`, `username` ou `walletNickname`) |
+| PATCH | `/profile/password` | sim | `ChangePasswordInput` | 204 | 400 (`fieldErrors.currentPassword` quando a atual está errada), 401 |
+| PUT | `/profile/avatar` | sim | `multipart/form-data`, campo `file` (png, jpeg ou webp, até 2 MB) | 200 `Profile` | 400 (`fieldErrors.avatar`: tipo, tamanho ou imagem grande demais), 401 |
+| DELETE | `/profile/avatar` | sim | — | 200 `Profile` (`avatarUrl: null`) | 401 |
+
+- `PATCH` é o método usado pelo app em `/profile`, `/profile/password` e `/wallets/:id`. `PUT` nesses três caminhos continua aceito como alias (mesmo comportamento).
+- Avatar (`/profile/avatar`): endpoint adicionado para a tela Perfil, só na camada de mocks (nenhum schema novo; a resposta é o `Profile`). A simulação guarda a imagem como data URL no `localStorage` (~500 KB). Por isso o app reduz a foto escolhida (até 2 MB) para um quadrado de até 256 px em WebP antes de enviar. A validação de tipo e tamanho também existe no cliente, para a mensagem de erro aparecer sem ida à rede.
 
 - `Profile`: `displayName`, `username`, `email`, `ensName` (ou `null`), `walletNickname`, `avatarUrl`. `walletNickname` é o apelido da carteira **principal**: `null` se o usuário não tem carteira; ao salvar, renomeia a carteira principal (sem carteira principal, um valor não nulo → 409).
 - Nome de usuário e e-mail são únicos (sem diferenciar caixa no nome de usuário).
@@ -147,7 +152,7 @@ Pagamento recusado de forma determinística: carteira cujo endereço termina em 
 |---|---|---|---|---|---|
 | GET | `/wallets` | sim | — | 200 `WalletList` | 401 |
 | POST | `/wallets` | sim | `WalletInput` | 201 `Wallet` | 400, 401, 409 (endereço duplicado) |
-| PUT | `/wallets/:id` | sim | `WalletInput` | 200 `Wallet` | 400, 401, 403, 404, 409 |
+| PATCH | `/wallets/:id` | sim | `WalletInput` | 200 `Wallet` | 400, 401, 403, 404, 409 |
 
 - `WalletInput` = campos do formulário do colecionador (`CollectorFormFields`, os mesmos do pedido) + `nickname` (apelido da carteira) + `role` (`primary` ou `secondary`). `Wallet` acrescenta `id`, `createdAt` e `updatedAt`.
 - Redes: `ethereum`, `polygon`, `base`.

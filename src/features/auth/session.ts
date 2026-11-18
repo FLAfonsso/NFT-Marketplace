@@ -132,6 +132,26 @@ export const sessionStore = {
     }
   },
 
+  /** Reflete na hora no header (nome, avatar) o que o perfil acabou de salvar. */
+  updateUser(patch: Partial<Pick<User, 'name' | 'email' | 'avatarUrl'>>) {
+    if (state.status !== 'authenticated') return
+    setState({ ...state, user: { ...state.user, ...patch } })
+  },
+
+  /** Invalida a sessão: busca o usuário de novo, sem trocar o token nem reabrir o socket. */
+  async refresh() {
+    const current = state
+    if (current.status !== 'authenticated') return
+    try {
+      const { user } = await authApi.session(current.token)
+      if (state.status === 'authenticated' && state.token === current.token && state.user.id === user.id) {
+        setState({ ...state, user })
+      }
+    } catch {
+      // Falha aqui não encerra nada: o 401 real é tratado pela próxima chamada autenticada.
+    }
+  },
+
   /** Sessão recusada pela API durante o uso (401). */
   expire: endSession,
 }
