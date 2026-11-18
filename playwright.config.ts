@@ -8,6 +8,8 @@ export default defineConfig({
   testDir: './e2e',
   // Cada teste tem seu próprio estado (ver e2e/fixtures.ts), então podem rodar em paralelo.
   fullyParallel: true,
+  // O dev server com mocks (MSW) em um só processo satura com muitos navegadores: limita a 4.
+  workers: 4,
   forbidOnly: isCI,
   retries: isCI ? 1 : 0,
   reporter: [['html', { open: 'never' }], ['list']],

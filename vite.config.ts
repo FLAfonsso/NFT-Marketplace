@@ -12,5 +12,5 @@ export default defineConfig({
   ],
   // Porta fixa: o Playwright depende dela; falha em vez de pular para outra porta.
   server: { port: 5173, strictPort: true },
-  resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
+  resolve: { alias: { "@": path.resolve(import.meta.dirname, "./src") } },
 });

@@ -122,10 +122,17 @@ for (const path of ['/checkout', '/profile', '/wallets', '/orders/qualquer-id'])
 
 async function expireOnDetail(page: Page) {
   await signIn(page, 'ana')
+  const favoritesLoaded = page.waitForResponse(
+    (r) => r.request().method() === 'GET' && new URL(r.url()).pathname === '/api/favorites',
+  )
   await page.goto('/nft/nft_002')
   const here = hrefOf(page)
   const favorite = page.getByRole('button', { name: 'Favoritar', exact: true })
   await expect(favorite).toBeEnabled()
+  // As leituras autenticadas da página (lista de favoritos, carrinho) já terminaram: o primeiro 401
+  // vem do clique abaixo, e não de uma consulta em andamento que derrubaria a página antes dele.
+  await favoritesLoaded
+  await page.waitForLoadState('networkidle')
 
   await page.evaluate(() => window.__mocks!.expireSessions())
   await favorite.click() // ação autenticada com o token vencido
@@ -145,7 +152,10 @@ test('6. expiração durante a navegação: a próxima ação vai ao login com r
 test('6b. expiração durante a navegação: a tela de login avisa que a sessão expirou', async ({ page }) => {
   const here = await expireOnDetail(page)
   await expectLoginRedirect(page, here)
-  await expect(page.getByText(/sessão expirada/i)).toBeVisible()
+  await expect(page.getByRole('status').filter({ hasText: /sess[ãa]o expir/i })).toBeVisible()
+  // O parâmetro some da URL depois de mostrado; o redirect continua.
+  await expect(page).not.toHaveURL(/reason=/)
+  await expectLoginRedirect(page, here)
 })
 
 test('7. expiração no checkout: volta ao /checkout com rascunho e carrinho preservados, sem pedido duplicado', async ({

@@ -474,8 +474,8 @@ test('9. skeletons com as dimensões dos cards durante o carregamento lento', as
   await page.goto('/')
 
   const catalog = catalogOf(page)
-  // Só a grade do painel da aba: a sidebar também tem skeletons (das facets).
-  const skeletons = catalog.getByRole('tabpanel').getByRole('listitem', { includeHidden: true })
+  // Só os skeletons da grade de NFTs: a sidebar (facets) e a paginação também têm listitem.
+  const skeletons = catalog.getByTestId('catalog-skeleton-grid').getByRole('listitem', { includeHidden: true })
   await expect(skeletons).toHaveCount(9)
   await expect(cardsOf(page)).toHaveCount(0)
 

@@ -33,7 +33,7 @@ setUnauthorizedHandler(() => {
   sessionStore.expire()
   const { href, pathname } = router.state.location
   if (AUTH_PATHS.has(pathname)) return
-  void router.navigate({ to: '/login', search: { redirect: href }, replace: true })
+  void router.navigate({ to: '/login', search: { redirect: href, reason: 'expired' }, replace: true })
 })
 
 // Entrou, saiu ou trocou de usuário: os guards (beforeLoad) rodam de novo na rota atual.

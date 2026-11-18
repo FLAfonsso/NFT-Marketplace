@@ -1,4 +1,5 @@
 import { Link, useNavigate } from '@tanstack/react-router'
+import { useEffect, useState, type ReactNode } from 'react'
 import { XIcon } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import {
@@ -29,16 +30,54 @@ const copy = {
 } as const
 
 /** Desktop (>= 768px): modal sobre a Início. Mobile: página cheia. */
-export function AuthScreen({ mode, redirect }: { mode: Mode; redirect: string | undefined }) {
+export function AuthScreen({
+  mode,
+  redirect,
+  expired = false,
+}: {
+  mode: Mode
+  redirect: string | undefined
+  expired?: boolean
+}) {
   const isDesktop = useIsDesktop()
+  const notice = useExpiredNotice(expired, redirect)
   return isDesktop ? (
-    <AuthDialog mode={mode} redirect={redirect} />
+    <AuthDialog mode={mode} redirect={redirect} notice={notice} />
   ) : (
-    <AuthPage mode={mode} redirect={redirect} />
+    <AuthPage mode={mode} redirect={redirect} notice={notice} />
   )
 }
 
-function AuthDialog({ mode, redirect }: { mode: Mode; redirect: string | undefined }) {
+/**
+ * Aviso de sessão expirada (vindo de um 401). Guarda o aviso em estado e remove `reason` da URL,
+ * para que ele não reapareça ao recarregar nem ao compartilhar o link.
+ */
+function useExpiredNotice(expired: boolean, redirect: string | undefined) {
+  const navigate = useNavigate()
+  const [shown] = useState(expired)
+  useEffect(() => {
+    if (!expired) return
+    void navigate({ to: '/login', search: { redirect }, replace: true })
+  }, [expired, redirect, navigate])
+  return shown ? (
+    <p
+      role="status"
+      className="rounded-md border border-border bg-surface px-3 py-2 text-center text-sm text-foreground"
+    >
+      Sua sessão expirou. Entre novamente para continuar.
+    </p>
+  ) : null
+}
+
+function AuthDialog({
+  mode,
+  redirect,
+  notice,
+}: {
+  mode: Mode
+  redirect: string | undefined
+  notice: ReactNode
+}) {
   const navigate = useNavigate()
   const { description } = copy[mode]
 
@@ -97,6 +136,7 @@ function AuthDialog({ mode, redirect }: { mode: Mode; redirect: string | undefin
           {description}
         </DialogDescription>
 
+        {mode === 'login' && notice}
         {mode === 'login' ? (
           <LoginForm redirect={redirect} />
         ) : (
@@ -107,7 +147,15 @@ function AuthDialog({ mode, redirect }: { mode: Mode; redirect: string | undefin
   )
 }
 
-function AuthPage({ mode, redirect }: { mode: Mode; redirect: string | undefined }) {
+function AuthPage({
+  mode,
+  redirect,
+  notice,
+}: {
+  mode: Mode
+  redirect: string | undefined
+  notice: ReactNode
+}) {
   const { mobileTitle, switchText } = copy[mode]
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-8 px-7 pt-20 pb-10">
@@ -115,6 +163,7 @@ function AuthPage({ mode, redirect }: { mode: Mode; redirect: string | undefined
         <Logo size="auth" />
       </div>
       <h1 className="text-center text-base font-bold">{mobileTitle}</h1>
+      {mode === 'login' && notice}
       {mode === 'login' ? (
         <LoginForm redirect={redirect} />
       ) : (

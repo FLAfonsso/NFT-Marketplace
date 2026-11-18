@@ -9,6 +9,6 @@ export const Route = createFileRoute('/login')({
 })
 
 function LoginPage() {
-  const { redirect } = Route.useSearch()
-  return <AuthScreen mode="login" redirect={redirect} />
+  const { redirect, reason } = Route.useSearch()
+  return <AuthScreen mode="login" redirect={redirect} expired={reason === 'expired'} />
 }

@@ -21,7 +21,7 @@ const roundIcon =
   'grid size-10 place-items-center rounded-full bg-background/70 outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring'
 
 function FavoriteButton({ nft, variant }: { nft: Nft; variant: 'desktop' | 'mobile' }) {
-  const { isFavorite, toggle, busy } = useFavorites()
+  const { isFavorite, isBusy, toggle } = useFavorites()
   const pressed = isFavorite(nft.id)
   const heart = <HeartIcon className={cn('size-4', pressed && 'fill-current')} aria-hidden="true" />
 
@@ -31,7 +31,7 @@ function FavoriteButton({ nft, variant }: { nft: Nft; variant: 'desktop' | 'mobi
         type="button"
         aria-label="Favoritar"
         aria-pressed={pressed}
-        disabled={busy}
+        disabled={isBusy(nft.id)}
         onClick={() => toggle(nft)}
         className={cn(roundIcon, pressed && 'text-primary', 'disabled:opacity-60')}
       >
@@ -43,7 +43,7 @@ function FavoriteButton({ nft, variant }: { nft: Nft; variant: 'desktop' | 'mobi
     <Button
       variant="outline"
       aria-pressed={pressed}
-      disabled={busy}
+      disabled={isBusy(nft.id)}
       onClick={() => toggle(nft)}
       className="h-9 gap-2 rounded-sm border-primary px-4 text-primary hover:bg-primary/10"
     >

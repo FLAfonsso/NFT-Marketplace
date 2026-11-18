@@ -9,9 +9,9 @@ export const gridClass = 'grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 md:gap
 
 export const PAGE_SKELETON_COUNT = 9
 
-export function NftGridSkeleton() {
+export function NftGridSkeleton({ testId = 'catalog-skeleton-grid' }: { testId?: string }) {
   return (
-    <ul className={gridClass} aria-hidden="true">
+    <ul className={gridClass} aria-hidden="true" data-testid={testId}>
       {Array.from({ length: PAGE_SKELETON_COUNT }, (_, i) => (
         <NftCardSkeleton key={i} />
       ))}
@@ -20,7 +20,7 @@ export function NftGridSkeleton() {
 }
 
 /** Grid de cards. Favoritos e carrinho têm uma única mutation para a página toda. */
-export function NftGrid({ items }: { items: readonly Nft[] }) {
+export function NftGrid({ items, testId = 'catalog-grid' }: { items: readonly Nft[]; testId?: string }) {
   const favorites = useFavorites()
   const addToCart = useAddToCart()
 
@@ -42,13 +42,13 @@ export function NftGrid({ items }: { items: readonly Nft[] }) {
   const pendingNftId = addToCart.isPending ? addToCart.variables?.nftId : undefined
 
   return (
-    <ul className={gridClass}>
+    <ul className={gridClass} data-testid={testId}>
       {items.map((nft) => (
         <NftCard
           key={nft.id}
           nft={nft}
           isFavorite={favorites.isFavorite(nft.id)}
-          favoriteBusy={favorites.busy}
+          favoriteBusy={favorites.isBusy(nft.id)}
           onToggleFavorite={favorites.toggle}
           onAddToCart={add}
           adding={pendingNftId === nft.id}

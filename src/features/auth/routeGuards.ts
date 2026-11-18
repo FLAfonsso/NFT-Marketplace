@@ -10,6 +10,8 @@ interface GuardContext {
 /** Search de /login e /signup: rota para onde voltar depois de entrar. */
 export const authSearchSchema = z.object({
   redirect: z.string().optional().catch(undefined),
+  /** 'expired': a 401 levou até aqui; a tela avisa e remove o parâmetro da URL. */
+  reason: z.literal('expired').optional().catch(undefined),
 })
 
 /** beforeLoad das rotas privadas. Espera a recuperação da sessão antes de decidir. */
