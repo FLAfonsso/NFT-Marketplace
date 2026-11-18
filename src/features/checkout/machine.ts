@@ -18,6 +18,9 @@ import type { QuoteChange } from './quoteChanges'
  *                                              changed ◀─QUOTE_CHANGED──┤
  *                                       (ACCEPT_CHANGES ▶ submitting)   └──FAIL──▶ failed (RETRY ▶ submitting)
  *
+ *   reviewing ──QUOTE_STALE──▶ changed (quote null) ──QUOTE_CHANGED──▶ changed (quote nova)
+ *     (nft.updated de um item com a revisão aberta: o envio fica bloqueado até nova confirmação)
+ *
  * - O pedido só sai de "submitting", e só se chega lá por "revalidating" (cotação conferida) ou
  *   por "changed" (o usuário aceitou os novos valores).
  * - Eventos fora da tabela são ignorados: um clique atrasado não pula etapas.
@@ -60,8 +63,11 @@ export type CheckoutState =
   | {
       status: 'changed'
       review: ReviewSnapshot
-      /** Cotação nova que substitui a revisada se o usuário aceitar. */
-      quote: Quote
+      /**
+       * Cotação nova que substitui a revisada se o usuário aceitar. null: a revisada ficou
+       * desatualizada (tempo real) e a nova ainda está sendo buscada; não dá para aceitar.
+       */
+      quote: Quote | null
       changes: QuoteChange[]
       /** Item esgotado ou acima do disponível: precisa ajustar o carrinho. */
       blocking: boolean
@@ -86,6 +92,8 @@ export type CheckoutEvent =
   | { type: 'CANCEL' }
   | { type: 'SEND' }
   | { type: 'QUOTE_CHANGED'; quote: Quote; changes: QuoteChange[]; blocking: boolean; reason: string }
+  /** Preço ou estoque de um item mudou (tempo real) com a revisão aberta: a cotação dela vale menos. */
+  | { type: 'QUOTE_STALE'; changes: QuoteChange[]; reason: string }
   | { type: 'ACCEPT_CHANGES' }
   | { type: 'SUBMIT'; review: ReviewSnapshot | null }
   | { type: 'RECOVERING'; attempt: number }
@@ -117,9 +125,25 @@ export function checkoutReducer(state: CheckoutState, event: CheckoutEvent): Che
     case 'SEND':
       return state.status === 'reviewing' ? { status: 'revalidating', review: state.review } : state
 
+    case 'QUOTE_STALE':
+      // Fecha a revisão (o diálogo de mudanças assume) e bloqueia o envio até a nova cotação.
+      return state.status === 'reviewing' || state.status === 'changed'
+        ? {
+            status: 'changed',
+            review: state.review,
+            quote: null,
+            changes: event.changes,
+            blocking: false,
+            reason: event.reason,
+          }
+        : state
+
     case 'QUOTE_CHANGED': {
       const review = reviewOf(state)
-      return (state.status === 'revalidating' || state.status === 'submitting') && review
+      return (state.status === 'revalidating' ||
+        state.status === 'submitting' ||
+        state.status === 'changed') &&
+        review
         ? {
             status: 'changed',
             review,
@@ -132,7 +156,7 @@ export function checkoutReducer(state: CheckoutState, event: CheckoutEvent): Che
     }
 
     case 'ACCEPT_CHANGES':
-      return state.status === 'changed' && !state.blocking
+      return state.status === 'changed' && !state.blocking && state.quote
         ? { status: 'submitting', review: { ...state.review, quote: state.quote }, attempt: 0 }
         : state
 

@@ -323,7 +323,7 @@ export function useCheckoutFlow({ userId, nameOf, onFieldErrors }: CheckoutFlowO
 
   /** "Confirmar novos valores" no diálogo de mudanças: nova confirmação do usuário. */
   const acceptChanges = () => {
-    if (state.status !== 'changed' || state.blocking) return
+    if (state.status !== 'changed' || state.blocking || !state.quote) return
     const snapshot = { ...state.review, quote: state.quote }
     void guarded(async () => {
       dispatch({ type: 'ACCEPT_CHANGES' })
@@ -350,6 +350,39 @@ export function useCheckoutFlow({ userId, nameOf, onFieldErrors }: CheckoutFlowO
       await handleOutcome(outcome, snapshot, stored.input)
     })
   }
+
+  const stateRef = useRef(state)
+  useEffect(() => {
+    stateRef.current = state
+  })
+  /** Só a busca mais recente de cotação nova vale (dois eventos seguidos). */
+  const staleRun = useRef(0)
+
+  /**
+   * Preço ou estoque de um item mudou em tempo real com a revisão aberta (ou o diálogo de
+   * mudanças já aberto): fecha a revisão, bloqueia o envio e busca a cotação atual para o
+   * usuário confirmar de novo. Com o envio já em andamento não faz nada: a revalidação antes do
+   * POST e a API (cotação com versão do NFT) recusam a cotação velha.
+   */
+  const markReviewStale = useCallback(
+    (changes: QuoteChange[], reason: string) => {
+      const current = stateRef.current
+      if (inFlight.current || (current.status !== 'reviewing' && current.status !== 'changed')) return
+      const review = current.review
+      dispatch({ type: 'QUOTE_STALE', changes, reason })
+      const run = ++staleRun.current
+      void (async () => {
+        try {
+          const quote = await cartApi.quote(null, quoteRequestOf(review))
+          if (run !== staleRun.current || signal().aborted) return
+          quoteChanged(review, quote, reason, changes)
+        } catch {
+          // Sem a cotação nova o diálogo segue bloqueado; "Voltar e editar" recomeça a revisão.
+        }
+      })()
+    },
+    [quoteChanged],
+  )
 
   // Funções mais recentes para a retomada, sem reiniciar o ciclo de vida quando mudam.
   const resume = useRef({ sendWithRecovery, handleOutcome })
@@ -387,5 +420,5 @@ export function useCheckoutFlow({ userId, nameOf, onFieldErrors }: CheckoutFlowO
     }
   }, [userId])
 
-  return { state, openReview, cancel, send, acceptChanges, retry }
+  return { state, openReview, cancel, send, acceptChanges, retry, markReviewStale }
 }

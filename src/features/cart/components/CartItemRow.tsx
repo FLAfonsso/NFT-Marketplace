@@ -6,6 +6,7 @@ import { QuantityStepper } from '@/features/catalog/detail/QuantityStepper'
 import { formatEth } from '@/lib/eth'
 import { cn } from '@/lib/utils'
 import { useRemoveItem, useUpdateQuantity } from '../useCartItemMutations'
+import type { CartRealtimeNotice } from '../useCartRealtime'
 import type { CartLine } from '../useCartLines'
 
 /** Colunas da tabela desktop: NFT, preço, quantidade, total, lixeira. Compartilhada com o cabeçalho. */
@@ -21,14 +22,24 @@ export type QuoteState = 'ready' | 'error'
 const trash =
   'grid size-10 shrink-0 place-items-center rounded-full text-muted-foreground outline-none transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40'
 
-/** Texto (não só cor) que marca o item afetado por um aviso da cotação. */
-function ItemNotice({ warning }: { warning: QuoteWarning }) {
-  const text =
-    warning.type === 'price_changed'
-      ? 'Preço alterado'
-      : warning.available === 0
-        ? 'Indisponível: esgotado'
-        : `Indisponível: restam ${warning.available}`
+const eth = (value: string) => `${formatEth(value)} ETH`
+
+const warningText = (warning: QuoteWarning) =>
+  warning.type === 'price_changed'
+    ? `Preço alterado: de ${eth(warning.previousPrice)} para ${eth(warning.currentPrice)}`
+    : warning.available === 0
+      ? 'Indisponível: esgotado'
+      : `Indisponível: restam ${warning.available}`
+
+const noticeText = (notice: CartRealtimeNotice) =>
+  notice.type === 'price'
+    ? `Preço alterado: de ${eth(notice.from)} para ${eth(notice.to)}`
+    : notice.type === 'stock'
+      ? `Disponibilidade reduzida: restam ${notice.to}`
+      : `Quantidade ajustada de ${notice.from} para ${notice.to}`
+
+/** Texto (não só cor) que marca o item afetado por um aviso da cotação ou do tempo real. */
+function ItemNotice({ text }: { text: string }) {
   return (
     <p className="flex items-center gap-1 text-xs font-bold text-primary">
       <TriangleAlertIcon className="size-3.5 shrink-0" aria-hidden="true" />
@@ -72,6 +83,7 @@ export function CartItemRow({
   quoteLine,
   quoteState,
   warnings,
+  realtime = [],
   isDesktop,
   onRemove,
   onRemoveFailed,
@@ -80,6 +92,8 @@ export function CartItemRow({
   quoteLine: QuoteLine | undefined
   quoteState: QuoteState
   warnings: QuoteWarning[]
+  /** Mudanças recebidas em tempo real para este item. */
+  realtime?: CartRealtimeNotice[]
   isDesktop: boolean
   /** Chamado ao pedir a remoção, antes da resposta (o foco é devolvido depois). */
   onRemove: (key: string) => void
@@ -154,7 +168,10 @@ export function CartItemRow({
     />
   )
 
-  const notices = warnings.map((w) => <ItemNotice key={w.type} warning={w} />)
+  const notices = [
+    ...realtime.map((n) => <ItemNotice key={`rt:${n.type}`} text={noticeText(n)} />),
+    ...warnings.map((w) => <ItemNotice key={w.type} text={warningText(w)} />),
+  ]
   const errorMessage = error && (
     <p role="alert" className="text-xs text-destructive">
       {error.message}

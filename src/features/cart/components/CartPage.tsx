@@ -6,13 +6,13 @@ import { useAuth } from '@/features/auth'
 import { useIsDesktop } from '@/lib/useMediaQuery'
 import { cn } from '@/lib/utils'
 import { useCart } from '../useCart'
-import { useCartRealtime } from '../useCartRealtime'
 import { itemKey, useCartLines } from '../useCartLines'
 import { useQuote } from '../useQuote'
 import { useSuggestions } from '../useSuggestions'
 import { CartItemRow, CartRowSkeleton, DESKTOP_COLUMNS } from './CartItemRow'
 import { CartSummary } from './CartSummary'
 import { CartEmpty, CartError } from './CartStates'
+import { useCartRealtime, visibleWarnings } from '../useCartRealtime'
 import { QuoteNotices } from './QuoteNotices'
 import { useFocusAfterRemove } from './useFocusAfterRemove'
 
@@ -41,7 +41,7 @@ export function CartPage() {
   const cart = cartQuery.data
   const items = cart?.items
 
-  useCartRealtime(items)
+  const realtimeNotices = useCartRealtime(items, { adjustQuantities: true })
   const lines = useCartLines(items ?? [])
   const quote = useQuote(cart)
   const suggestions = useSuggestions(items?.map((i) => i.nftId) ?? [])
@@ -57,7 +57,8 @@ export function CartPage() {
   const quoteData = quote.data
   const quoteFailed = quote.isError
   const quoteLoading = quote.isPending && quote.fetchStatus !== 'idle'
-  const quoteUpdating = quote.isPlaceholderData
+  // Placeholder (itens ou cupom mudaram) ou releitura (cotação invalidada pelo tempo real).
+  const quoteUpdating = quote.isPlaceholderData || quote.isRefetching
   const warnings = quoteData?.warnings ?? []
 
   // Cotação com problema bloqueia o checkout: a tela nunca finaliza com valor que a API não confirmou.
@@ -75,7 +76,9 @@ export function CartPage() {
             ? 'Remova o cupom recusado para continuar.'
             : null
 
-  const warningsFor = (key: string) => warnings.filter((w) => itemKey(w) === key)
+  const shownWarnings = visibleWarnings(warnings, realtimeNotices)
+  const warningsFor = (key: string) => shownWarnings.filter((w) => itemKey(w) === key)
+  const noticesFor = (key: string) => realtimeNotices.filter((n) => n.key === key)
   const quoteLines = new Map(quoteData?.items.map((l) => [itemKey(l), l]))
 
   const isLoading = cartQuery.isPending
@@ -115,7 +118,7 @@ export function CartPage() {
     body = (
       <div className="flex min-h-[calc(100dvh-4.5rem)] flex-col md:min-h-0 lg:grid lg:grid-cols-[minmax(0,1fr)_332px] lg:items-start lg:gap-12">
         <div className="flex flex-1 flex-col px-4 md:px-0">
-          <QuoteNotices warnings={warnings} lines={lines} />
+          <QuoteNotices warnings={warnings} notices={realtimeNotices} lines={lines} />
           {isDesktop && <ColumnHeaders />}
           <ul
             ref={listRef}
@@ -134,6 +137,7 @@ export function CartPage() {
                     quoteLine={quoteLines.get(line.key)}
                     quoteState={quoteFailed ? 'error' : 'ready'}
                     warnings={warningsFor(line.key)}
+                    realtime={noticesFor(line.key)}
                     isDesktop={isDesktop}
                     onRemove={focus.prepare}
                     onRemoveFailed={focus.cancel}

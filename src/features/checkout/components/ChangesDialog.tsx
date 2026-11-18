@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { LoaderCircleIcon } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Dialog,
@@ -15,6 +16,8 @@ import type { CheckoutState } from '../machine'
 /**
  * Mudanças entre a cotação revisada e a atual (antes e depois, em texto). O pedido só segue
  * com nova confirmação ("Confirmar novos valores"); item esgotado exige ajustar o carrinho.
+ * Quando a revisão fica desatualizada em tempo real, abre já com as diferenças do evento e a
+ * confirmação só libera quando a cotação nova chega.
  */
 export function ChangesDialog({
   state,
@@ -51,11 +54,19 @@ export function ChangesDialog({
           ))}
         </ul>
 
-        {changed && !changed.blocking && (
-          <p className="text-sm">
-            Novo total: <strong className="text-primary">{formatEth(changed.quote.total)} ETH</strong>
-          </p>
-        )}
+        <p role="status" className="flex min-h-5 items-center gap-2 text-sm">
+          {changed && !changed.quote && (
+            <>
+              <LoaderCircleIcon className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+              <span className="text-muted-foreground">Buscando a cotação atualizada…</span>
+            </>
+          )}
+          {changed?.quote && !changed.blocking && (
+            <span>
+              Novo total: <strong className="text-primary">{formatEth(changed.quote.total)} ETH</strong>
+            </span>
+          )}
+        </p>
         {changed?.blocking && (
           <p role="alert" className="text-sm text-destructive">
             Um item ficou indisponível na quantidade pedida. Ajuste o carrinho para continuar.
@@ -71,7 +82,7 @@ export function ChangesDialog({
               Ajustar carrinho
             </Link>
           ) : (
-            <Button type="button" onClick={onAccept} className="font-bold">
+            <Button type="button" disabled={!changed?.quote} onClick={onAccept} className="font-bold">
               Confirmar novos valores
             </Button>
           )}

@@ -14,6 +14,7 @@ import { Gallery } from './Gallery'
 import { QuantityStepper } from './QuantityStepper'
 import { Rating } from './Rating'
 import { RelatedCarousel } from './RelatedCarousel'
+import { useNftChangeAnnouncer } from './useNftChangeAnnouncer'
 import { usePurchase } from './usePurchase'
 
 const roundIcon =
@@ -98,8 +99,25 @@ function Share() {
 export function NftDetail({ nft }: { nft: Nft }) {
   const isDesktop = useIsDesktop()
   const purchase = usePurchase(nft)
+  const liveMessage = useNftChangeAnnouncer(nft, {
+    editionId: purchase.edition?.id ?? null,
+    quantity: purchase.quantity,
+  })
   const price = `${formatEth(nft.price)} ETH`
   const compareAt = nft.compareAtPrice ? `${formatEth(nft.compareAtPrice)} ETH` : null
+
+  // Mudanças em tempo real (preço, estoque, seleção ajustada), anunciadas sem roubar o foco.
+  const live = (
+    <p aria-live="polite" className="sr-only">
+      {liveMessage}
+    </p>
+  )
+  const stock = purchase.edition && (
+    <p className="text-xs text-muted-foreground">
+      Edição {purchase.edition.name}: {purchase.edition.available}{' '}
+      {purchase.edition.available === 1 ? 'disponível' : 'disponíveis'}
+    </p>
+  )
 
   const alert = purchase.error && (
     <p role="alert" className="rounded-sm border border-destructive/40 bg-surface px-3 py-2 text-xs text-destructive">
@@ -171,8 +189,10 @@ export function NftDetail({ nft }: { nft: Nft }) {
               {compareAt && <span className="block text-xs font-normal text-muted-foreground line-through">{compareAt}</span>}
             </p>
           </div>
+          {stock}
           {alert}
           {soldOutNotice}
+          {live}
           <div className="flex items-center gap-3">
             <Button
               disabled={purchase.soldOut || purchase.submitting}
@@ -237,8 +257,10 @@ export function NftDetail({ nft }: { nft: Nft }) {
                 <FavoriteButton nft={nft} variant="desktop" />
               </div>
             </div>
+            {stock}
             {alert}
             {soldOutNotice}
+            {live}
 
             <Meta nft={nft} />
             <Share />

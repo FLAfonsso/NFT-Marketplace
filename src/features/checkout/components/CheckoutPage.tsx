@@ -7,7 +7,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader'
 import { Button } from '@/components/ui/button'
 import { WalletType, type ApiError, type Wallet } from '@/contracts'
 import { useAuth } from '@/features/auth'
-import { itemKey, useCart, useCartLines, useCartRealtime, useQuote } from '@/features/cart'
+import { itemKey, useCart, useCartLines, useQuote } from '@/features/cart'
 import { formatEth } from '@/lib/eth'
 import { isApiRequestError } from '@/lib/api'
 import { useIsDesktop } from '@/lib/useMediaQuery'
@@ -18,6 +18,7 @@ import { attemptStorage } from '../storage'
 import { useCheckoutData } from '../useCheckoutData'
 import { useCheckoutFlow } from '../useCheckoutFlow'
 import { useCheckoutForm } from '../useCheckoutForm'
+import { useStaleQuoteGuard } from '../useStaleQuoteGuard'
 import { useWalletConnection } from '../useWalletConnection'
 import { ChangesDialog } from './ChangesDialog'
 import { CollectorForm } from './CollectorForm'
@@ -43,7 +44,6 @@ function CheckoutScreen({ userId }: { userId: string }) {
 
   const cartQuery = useCart()
   const cart = cartQuery.data
-  useCartRealtime(cart?.items)
   const lines = useCartLines(cart?.items ?? [])
   const quote = useQuote(cart)
   const { profile, wallets } = useCheckoutData(userId)
@@ -73,6 +73,7 @@ function CheckoutScreen({ userId }: { userId: string }) {
   const flow = useCheckoutFlow({ userId, nameOf, onFieldErrors })
   const { state } = flow
   const busy = isBusy(state)
+  useStaleQuoteGuard(state, nameOf, flow.markReviewStale)
 
   const walletId = useWatch({ control: form.control, name: 'walletId' })
   const walletTypeValue = useWatch({ control: form.control, name: 'walletType' })
@@ -89,7 +90,9 @@ function CheckoutScreen({ userId }: { userId: string }) {
 
   const quoteData = quote.data
   const quoteLoading = quote.isPending && quote.fetchStatus !== 'idle'
-  const quoteUpdating = quote.isPlaceholderData
+  // Releitura também bloqueia: a cotação foi invalidada (ex.: preço mudou em tempo real) e a
+  // revisão não pode abrir com o valor anterior.
+  const quoteUpdating = quote.isPlaceholderData || quote.isRefetching
   const couponRejected =
     !!cart?.couponCode && !!quoteData?.coupon && quoteData.coupon.status !== 'applied'
 
