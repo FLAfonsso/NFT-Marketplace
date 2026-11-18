@@ -1,10 +1,24 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { PageSkeleton } from '@/components/PageSkeleton'
+import { NftDetail } from '@/features/catalog/detail/NftDetail'
+import { NftDetailError } from '@/features/catalog/detail/NftDetailError'
+import { NftDetailSkeleton } from '@/features/catalog/detail/NftDetailSkeleton'
+import { useNft } from '@/features/catalog/useNft'
 
 export const Route = createFileRoute('/nft/$id')({
   component: NftDetailPage,
 })
 
 function NftDetailPage() {
-  return <PageSkeleton title="Detalhes do NFT" />
+  const { id } = Route.useParams()
+  // key: trocar de NFT reinicia edição, quantidade e galeria.
+  return <NftDetailLoader key={id} id={id} />
+}
+
+function NftDetailLoader({ id }: { id: string }) {
+  const { data, error, isPending, isFetching, refetch } = useNft(id)
+
+  // Refetch em segundo plano (tempo real, foco) não apaga a tela: só importa quando não há dado.
+  if (data) return <NftDetail nft={data} />
+  if (isPending && !error) return <NftDetailSkeleton />
+  return <NftDetailError error={error} retrying={isFetching} onRetry={() => void refetch()} />
 }

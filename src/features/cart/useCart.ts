@@ -4,12 +4,16 @@ import { queryKeys, type CartOwner } from '@/lib/queryKeys'
 import { cartApi } from './cartApi'
 import { getGuestId } from './guestId'
 
+/** Dono do carrinho: usuário logado ou visitante. `null` enquanto a sessão é recuperada. */
+export function useCartOwner(): CartOwner | null {
+  const auth = useAuth()
+  if (auth.status === 'authenticated') return { userId: auth.user.id }
+  return auth.status === 'loading' ? null : { guestId: getGuestId() }
+}
+
 /** Carrinho do usuário logado ou do visitante. A chave inclui o dono (cache isolado). */
 export function useCart() {
-  const auth = useAuth()
-  const ready = auth.status !== 'loading'
-  const owner: CartOwner | null =
-    auth.status === 'authenticated' ? { userId: auth.user.id } : ready ? { guestId: getGuestId() } : null
+  const owner = useCartOwner()
 
   const query = useQuery({
     queryKey: queryKeys.cart(owner ?? { guestId: '' }),
