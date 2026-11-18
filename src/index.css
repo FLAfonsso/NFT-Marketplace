@@ -123,3 +123,8 @@
 
 /* Bone sobre superfície (linha do carrinho, painel mobile): mais claro que o fundo do card. */
 .shimmer-strong { background-color: var(--surface-strong); }
+
+/* Rolagem suave até âncoras (Mercado, EXPLORAR, paginação); imediata com prefers-reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}

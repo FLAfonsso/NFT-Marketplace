@@ -11,7 +11,7 @@ import { createRng, deepFreeze, Eth, stableStringify, toEthString, transactionRe
  * - bruno@example.com
  */
 
-export const SCHEMA_VERSION = 3
+export const SCHEMA_VERSION = 4
 const RNG_SEED = 20261101
 /** "Agora" do cenário: datas do seed são relativas a ele. */
 const SEED_NOW = Date.parse('2026-11-01T12:00:00.000Z')
@@ -135,21 +135,22 @@ const NAMED_NFTS: readonly NamedNft[] = [
     adjective: 'Emerald',
     noun: 'Ape',
     number: 42,
-    price: '2.45',
+    price: '1.19',
     badge: 'RARO',
     rating: { average: 4.8, count: 19 },
   },
-  { adjective: 'Sage', noun: 'Nomad', number: 9, price: '1.19' },
+  { adjective: 'Sage', noun: 'Nomad', number: 9, price: '1.69' },
   { adjective: 'Neon', noun: 'Vessel', number: 552, price: '1.99', compareAtPrice: '2.29' },
-  { adjective: 'Cosmic', noun: 'Bloom', number: 118, price: '0.75' },
-  { adjective: 'Violet', noun: 'Nomad', number: 314, price: '3.2' },
-  { adjective: 'Ivory', noun: 'Baron', number: 88, price: '1.5' },
-  { adjective: 'Golden', noun: 'Beat', number: 207, price: '0.35' },
-  { adjective: 'Golden', noun: 'Signal', number: 160, price: '0.8' },
+  { adjective: 'Cosmic', noun: 'Bloom', number: 118, price: '1.29' },
+  { adjective: 'Violet', noun: 'Nomad', number: 314, price: '1.39' },
+  { adjective: 'Ivory', noun: 'Baron', number: 88, price: '1.79' },
+  { adjective: 'Golden', noun: 'Beat', number: 207, price: '0.99' },
+  { adjective: 'Golden', noun: 'Signal', number: 160, price: '0.39' },
+  { adjective: 'Golden', noun: 'Frequency', number: 71, price: '0.59' },
 ]
 
-/** Estes dois precisam de estoque folgado (pelo menos 9 unidades nas edições não únicas). */
-const HIGH_STOCK_NUMBERS = new Set([314, 88])
+/** Estes três precisam de estoque folgado (pelo menos 9 unidades nas edições não únicas). */
+const HIGH_STOCK_NUMBERS = new Set([42, 314, 88])
 
 /** Extremos da faixa de preço do design, em posições fixas (fora dos nomeados). */
 const MIN_PRICE_INDEX = 20
@@ -189,6 +190,7 @@ const NAMED_IMAGE: Record<string, AssetImage> = {
   Ivory_Baron: 'Nape',
   Golden_Beat: 'Gape',
   Golden_Signal: 'Gape',
+  Golden_Frequency: 'Gape',
 }
 
 /** Galeria de 4 imagens: a principal primeiro, depois as outras artes em ordem fixa. */
@@ -284,7 +286,7 @@ const buildNfts = (): Nft[] => {
     const rating = named?.rating ?? { average: ratingAverage, count: ratingCount }
 
     // Um NFT inteiro esgotado a cada 9, nas posições fora dos nomeados.
-    const mode = HIGH_STOCK_NUMBERS.has(number) ? 'high' : i % 9 === 8 ? 'sold-out' : 'normal'
+    const mode = HIGH_STOCK_NUMBERS.has(number) ? 'high' : !named && i % 9 === 8 ? 'sold-out' : 'normal'
 
     const attributes = Object.entries(ATTRIBUTE_TRAITS).map(([traitType, values]) => ({
       traitType,
@@ -522,8 +524,13 @@ const buildPastOrder = (nfts: Nft[]): OrderRecord => {
 
 const buildSeed = (): DbState => {
   const nfts = buildNfts()
-  const anaCartItem = firstAvailable(nfts, 0)
-  const anaCartItem2 = firstAvailable(nfts, 5)
+  // Carrinho do Figma: Emerald Ape x2, Violet Nomad x6, Ivory Baron x9 (edição 1/50, limite 10).
+  const cartLine = (number: number, quantity: number) => {
+    const nft = nfts.find((n) => n.tokenId === pad(number, 4))
+    const edition = nft?.editions.find((e) => e.name === '1/50')
+    if (!nft || !edition) throw new Error(`Seed: NFT #${number} sem edição 1/50`)
+    return { nftId: nft.id, editionId: edition.id, quantity }
+  }
   return {
     schemaVersion: SCHEMA_VERSION,
     seq: 1000,
@@ -539,8 +546,9 @@ const buildSeed = (): DbState => {
       [`user:${SEED_USER_IDS.ana}`]: buildCart(
         `cart_${SEED_USER_IDS.ana}`,
         [
-          { nftId: anaCartItem.nft.id, editionId: anaCartItem.edition.id, quantity: 1 },
-          { nftId: anaCartItem2.nft.id, editionId: anaCartItem2.edition.id, quantity: 2 },
+          cartLine(42, 2),
+          cartLine(314, 6),
+          cartLine(88, 9),
         ],
         iso(-2 * DAY),
       ),

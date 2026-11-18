@@ -1,8 +1,20 @@
+import Decimal from 'decimal.js'
 import { z } from 'zod'
 import { EthString, Id, Network, NftSort, NftView } from '@/contracts'
+import { normalizeRange } from './list/price'
 
-/** ETH na URL: string decimal; inteiro digitado à mão ("priceMin=2") também vale. */
-const EthParam = z.union([EthString, z.number().int().nonnegative().transform(String)])
+/**
+ * ETH na URL: string decimal. O router converte "11.5" digitado à mão em número, então um número
+ * não negativo também vale e volta a ser string decimal (sem conta em float).
+ */
+const EthParam = z.union([
+  EthString,
+  z
+    .number()
+    .nonnegative()
+    .finite()
+    .transform((n) => new Decimal(n).toFixed()),
+])
 
 /**
  * Search params da tela inicial. Valor inválido na URL cai no padrão em vez de quebrar a rota
@@ -17,7 +29,7 @@ export const catalogSearchSchema = z.object({
   priceMax: EthParam.optional().catch(undefined),
   sort: NftSort.default('recent').catch('recent'),
   page: z.number().int().positive().default(1).catch(1),
-})
+}).transform((search) => ({ ...search, ...normalizeRange(search.priceMin, search.priceMax) }))
 
 export type CatalogSearch = z.infer<typeof catalogSearchSchema>
 

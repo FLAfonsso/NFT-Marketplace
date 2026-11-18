@@ -49,11 +49,11 @@ Query de `/nfts` (todos combináveis):
 - `view`: `all` (padrão), `new` (criados até 7 dias antes do NFT mais recente do catálogo) ou `trending` (os 12 com mais avaliações). Recorta o catálogo antes dos demais filtros.
 - `collections`: ids (slugs) das coleções, ex.: `arte-digital`, `musica`. Chave repetida (`collections=a&collections=b`), `collections[]=a` ou separada por vírgula (`collections=a,b`). Várias coleções são alternativas (OU).
 - `networks`: `ethereum`, `polygon`, `base`, mesmo formato de lista. Várias redes são alternativas (OU).
-- `priceMin`, `priceMax`: `EthString`, inclusivos. `priceMin > priceMax` → 400 (`fieldErrors.priceMin`).
+- `priceMin`, `priceMax`: `EthString`, inclusivos (`priceMin ≤ preço ≤ priceMax`), comparados com decimal.js, nunca como texto ou `number`. Cada ponta é opcional e vale sozinha. `priceMin > priceMax` → 400 (`fieldErrors.priceMin`). O filtro entra em `items`, `total`, `totalPages` e nas contagens de `facets`. Na tela Início, os mesmos valores ficam nos search params de `/`: a faixa completa (0.02 a 12.30) não grava nenhum dos dois, e valores fora da faixa ou com min > max são normalizados antes da consulta (limitados à faixa; pontas trocadas), de modo que a API só recebe faixa válida.
 - `sort`: `recent` (padrão), `price_asc`, `price_desc`, `name_asc`. Desempate por `id`.
 - `page` (padrão 1), `pageSize` (padrão **9**, máx. 48). Página além do fim devolve `items: []`.
 
-`NftListResponse`: `items`, `page`, `pageSize`, `total`, `totalPages` e `facets`.
+`NftListResponse`: `items`, `page`, `pageSize`, `total`, `totalPages` e `facets`. `total`, `totalPages` e as contagens de `facets` consideram todos os filtros ativos, preço incluído (cada grupo de facet ignora só o filtro do próprio grupo).
 
 `facets` traz `collections` e `networks`, cada um uma lista `{ id, name, count }` com **todas** as opções (inclusive `count: 0`). A contagem respeita todos os filtros ativos (`q`, `view`, preço e o outro grupo), **exceto o filtro do próprio grupo**: assim, com uma coleção marcada, as demais mostram quantos itens teriam ao serem marcadas também. Sem filtro de grupo, a soma das contagens é `total`.
 
