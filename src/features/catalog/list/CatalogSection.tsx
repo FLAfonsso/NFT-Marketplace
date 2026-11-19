@@ -88,7 +88,7 @@ export function CatalogSection({ sidebarExtra }: { sidebarExtra?: ReactNode }) {
     body = (
       <>
         <div className={cn('transition-opacity', query.isPlaceholderData && 'opacity-60')}>
-          <NftGrid items={data.items} />
+          <NftGrid items={data.items} eagerFirstRow />
         </div>
         <div className="mt-8">
           <Pagination page={data.page} totalPages={data.totalPages} />

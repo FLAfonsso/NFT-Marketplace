@@ -29,6 +29,8 @@ export function NftCard({
   favoriteBusy,
   onAddToCart,
   adding,
+  imageLoading = 'lazy',
+  highPriority = false,
 }: {
   nft: Nft
   isFavorite: boolean
@@ -36,6 +38,10 @@ export function NftCard({
   favoriteBusy: boolean
   onAddToCart: (nft: Nft) => void
   adding: boolean
+  /** 'eager' para as imagens da primeira linha (candidatas a LCP); as demais ficam lazy. */
+  imageLoading?: 'eager' | 'lazy'
+  /** fetchpriority="high" na imagem que é a candidata a LCP. */
+  highPriority?: boolean
 }) {
   const image = nft.gallery[0]
   const soldOut = !nft.editions.some((edition) => edition.available > 0)
@@ -50,7 +56,8 @@ export function NftCard({
           <img
             src={image?.url}
             alt={image?.alt || nft.name}
-            loading="lazy"
+            loading={imageLoading}
+            fetchPriority={highPriority ? 'high' : undefined}
             className="size-full rounded-2xl object-cover md:rounded-md"
           />
           {nft.badge && (

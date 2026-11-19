@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils'
 import { DetailTabs } from './DetailTabs'
 import { EditionPicker } from './EditionPicker'
 import { Gallery } from './Gallery'
+import { DESKTOP_RELATED_MIN_HEIGHT } from './NftDetailSkeleton'
 import { QuantityStepper } from './QuantityStepper'
 import { Rating } from './Rating'
 import { RelatedCarousel } from './RelatedCarousel'
@@ -269,7 +270,10 @@ export function NftDetail({ nft }: { nft: Nft }) {
       </div>
 
       <DetailTabs nft={nft} />
-      <RelatedCarousel nft={nft} />
+      {/* O carrossel só aparece quando a coleção carrega; a altura reservada evita empurrar o rodapé. */}
+      <div style={{ minHeight: DESKTOP_RELATED_MIN_HEIGHT }}>
+        <RelatedCarousel nft={nft} />
+      </div>
     </div>
   )
 }

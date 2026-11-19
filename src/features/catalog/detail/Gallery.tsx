@@ -44,6 +44,8 @@ export function Gallery({
           <img
             src={current.url}
             alt={current.alt}
+            loading="eager"
+            fetchPriority="high"
             className="size-full object-cover md:rounded-2xl"
           />
         )}

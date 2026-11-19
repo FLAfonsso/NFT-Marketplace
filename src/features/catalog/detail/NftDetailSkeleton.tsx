@@ -4,6 +4,15 @@ const Bone = ({ className }: { className?: string }) => (
   <div aria-hidden="true" className={cn('shimmer rounded-md', className)} />
 )
 
+/**
+ * Altura total do detalhe pronto no desktop (breadcrumb, galeria, abas e "Mais desta coleção").
+ * O rodapé fica logo abaixo: reservar essa altura aqui impede que ele desça quando o conteúdo chega.
+ */
+export const DESKTOP_DETAIL_MIN_HEIGHT = 1427
+
+/** Altura do carrossel "Mais desta coleção" no desktop, já com a coluna e os pontos de página. */
+export const DESKTOP_RELATED_MIN_HEIGHT = 322
+
 /** Mesmas dimensões do conteúdo: galeria, título, preço, edição e botões. */
 export function NftDetailSkeleton() {
   return (
@@ -26,7 +35,10 @@ export function NftDetailSkeleton() {
       </div>
 
       {/* desktop */}
-      <div className="mx-auto hidden w-full max-w-[1200px] px-4 pt-6 pb-16 md:block">
+      <div
+        className="mx-auto hidden w-full max-w-[1200px] px-4 pt-6 pb-16 md:block"
+        style={{ minHeight: DESKTOP_DETAIL_MIN_HEIGHT }}
+      >
         <Bone className="mb-4 h-4 w-40" />
         <div className="grid grid-cols-2 gap-8 lg:grid-cols-[minmax(0,540px)_minmax(0,1fr)]">
           <div className="flex gap-4">

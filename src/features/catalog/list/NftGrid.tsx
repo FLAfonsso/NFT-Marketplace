@@ -3,6 +3,7 @@ import type { Nft } from '@/contracts'
 import { useAddToCart } from '@/features/cart'
 import { useFavorites } from '@/features/favorites'
 import { isApiRequestError } from '@/lib/api'
+import { useIsDesktop } from '@/lib/useMediaQuery'
 import { NftCard, NftCardSkeleton } from './NftCard'
 
 export const gridClass = 'grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-3 md:gap-x-6 md:gap-y-8'
@@ -20,7 +21,18 @@ export function NftGridSkeleton({ testId = 'catalog-skeleton-grid' }: { testId?:
 }
 
 /** Grid de cards. Favoritos e carrinho têm uma única mutation para a página toda. */
-export function NftGrid({ items, testId = 'catalog-grid' }: { items: readonly Nft[]; testId?: string }) {
+export function NftGrid({
+  items,
+  testId = 'catalog-grid',
+  eagerFirstRow = false,
+}: {
+  items: readonly Nft[]
+  testId?: string
+  /** Carrega a primeira linha (3 colunas no desktop, 2 no mobile) sem lazy; a primeira imagem com prioridade alta. */
+  eagerFirstRow?: boolean
+}) {
+  const isDesktop = useIsDesktop()
+  const firstRow = eagerFirstRow ? (isDesktop ? 3 : 2) : 0
   const favorites = useFavorites()
   const addToCart = useAddToCart()
 
@@ -43,7 +55,7 @@ export function NftGrid({ items, testId = 'catalog-grid' }: { items: readonly Nf
 
   return (
     <ul className={gridClass} data-testid={testId}>
-      {items.map((nft) => (
+      {items.map((nft, index) => (
         <NftCard
           key={nft.id}
           nft={nft}
@@ -52,6 +64,8 @@ export function NftGrid({ items, testId = 'catalog-grid' }: { items: readonly Nf
           onToggleFavorite={favorites.toggle}
           onAddToCart={add}
           adding={pendingNftId === nft.id}
+          imageLoading={index < firstRow ? 'eager' : 'lazy'}
+          highPriority={index === 0 && firstRow > 0}
         />
       ))}
     </ul>
