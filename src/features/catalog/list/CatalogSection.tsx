@@ -171,7 +171,7 @@ export function CatalogSection({ sidebarExtra }: { sidebarExtra?: ReactNode }) {
             </div>
 
             {NFT_VIEWS.map((view) => (
-              <TabsContent key={view} value={view} className="outline-none" aria-busy={query.isFetching}>
+              <TabsContent key={view} value={view} className="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-busy={query.isFetching}>
                 {view === search.view && body}
               </TabsContent>
             ))}

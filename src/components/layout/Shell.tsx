@@ -1,4 +1,5 @@
 import { Outlet, useRouterState } from '@tanstack/react-router'
+import { APP_NAME, useDocumentTitle } from '@/lib/useDocumentTitle'
 import { useIsDesktop } from '@/lib/useMediaQuery'
 import { Footer } from './Footer'
 import { Header } from './Header'
@@ -8,6 +9,25 @@ export const MAIN_ID = 'conteudo'
 
 const AUTH_PATHS = new Set(['/login', '/signup'])
 
+const TITLES: Record<string, string> = {
+  '/': `${APP_NAME} | Marketplace de NFTs`,
+  '/cart': `Carrinho | ${APP_NAME}`,
+  '/login': `Entrar | ${APP_NAME}`,
+  '/signup': `Criar conta | ${APP_NAME}`,
+  '/checkout': `Pagamento | ${APP_NAME}`,
+  '/profile': `Perfil | ${APP_NAME}`,
+  '/wallets': `Carteiras | ${APP_NAME}`,
+  '/favorites': `Favoritos | ${APP_NAME}`,
+}
+
+/** Título por rota. O detalhe do NFT define o próprio (com o nome), então não entra aqui. */
+const titleFor = (pathname: string) =>
+  pathname.startsWith('/nft/')
+    ? undefined
+    : pathname.startsWith('/orders/')
+      ? `Pedido | ${APP_NAME}`
+      : (TITLES[pathname] ?? APP_NAME)
+
 /**
  * Layout raiz: header, conteúdo e rodapé em todas as rotas. Exceção: /login e /signup no mobile,
  * que são página cheia. Header e rodapé aparecem só no desktop; a barra inferior, só no mobile.
@@ -15,6 +35,7 @@ const AUTH_PATHS = new Set(['/login', '/signup'])
 export function Shell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const isDesktop = useIsDesktop()
+  useDocumentTitle(titleFor(pathname))
 
   if (!isDesktop && AUTH_PATHS.has(pathname)) return <Outlet />
 

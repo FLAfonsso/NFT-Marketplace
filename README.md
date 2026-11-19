@@ -79,6 +79,10 @@ export default defineConfig([
 - E2E com Playwright: `pnpm exec playwright test`.
 - Os testes sobem o próprio servidor Vite (com mocks) na porta **5199**; o `pnpm dev` continua na 5173. Se a 5199 estiver ocupada, a execução falha com erro de porta em uso.
 - **Não rode duas execuções do Playwright ao mesmo tempo**: cada uma apaga `test-results`.
+- Acessibilidade e responsividade: `pnpm test:a11y` e `pnpm exec playwright test e2e/responsive.spec.ts`.
+- Regressão visual: `pnpm test:visual`. As capturas de referência (baselines) ficam versionadas em `e2e/__screenshots__/<projeto>/visual.spec.ts/`, sem sufixo de plataforma.
+  - **Os baselines foram gerados no Windows, com Chromium.** Outro sistema operacional ou outras fontes do sistema podem mudar a renderização (anti-aliasing, hinting) e fazer o teste falhar sem que haja defeito. A tolerância é de no máximo 1% dos pixels (`maxDiffPixelRatio: 0.01`).
+  - Para atualizar depois de uma mudança visual intencional: `pnpm test:visual:update`, confira as imagens alteradas no diff do Git e commite junto com a mudança. Rode `pnpm test:visual` duas vezes em seguida para confirmar que está estável.
 
 ## Deploy
 

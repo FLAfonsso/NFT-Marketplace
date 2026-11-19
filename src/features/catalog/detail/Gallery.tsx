@@ -20,7 +20,7 @@ export function Gallery({
 
   return (
     <div className="flex gap-4">
-      <ul aria-label="Imagens do NFT" className="hidden w-[88px] shrink-0 flex-col gap-3 md:flex">
+      <ul aria-label="Imagens do NFT" className="hidden w-24 shrink-0 flex-col gap-3 overflow-y-auto p-1 [contain:size] [scrollbar-width:none] md:flex [&::-webkit-scrollbar]:hidden">
         {images.map((image, i) => (
           <li key={`${image.url}-${i}`}>
             <button
@@ -39,7 +39,7 @@ export function Gallery({
         ))}
       </ul>
 
-      <div className="relative aspect-square w-full overflow-hidden bg-surface md:rounded-lg md:p-4">
+      <div className="relative aspect-square w-full self-start overflow-hidden bg-surface md:rounded-lg md:p-4">
         {current && (
           <img
             src={current.url}

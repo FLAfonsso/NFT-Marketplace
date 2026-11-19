@@ -85,7 +85,7 @@ export function HomeHero() {
             {image ? (
               <img
                 src={image.url}
-                alt=""
+                alt={image.alt || current?.name || ''}
                 width={IMAGE_SIZE}
                 height={IMAGE_SIZE}
                 loading="eager"

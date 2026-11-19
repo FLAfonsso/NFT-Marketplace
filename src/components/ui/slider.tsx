@@ -39,7 +39,7 @@ function Slider({
               aria-label={label}
               inputRef={setBounds}
               getAriaValueText={getValueText ? (_, v) => getValueText(v) : undefined}
-              className="size-3.5 rounded-full bg-primary outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/60"
+              className="size-3.5 rounded-full bg-primary outline-none select-none has-focus-visible:ring-3 has-focus-visible:ring-ring"
             />
           ))}
         </SliderPrimitive.Track>

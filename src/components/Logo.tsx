@@ -19,7 +19,7 @@ export function Logo({
       to="/"
       aria-label="Kurio, página inicial"
       className={cn(
-        'font-bold tracking-[0.1em] text-foreground uppercase outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+        'font-bold tracking-[0.1em] text-foreground uppercase outline-none focus-visible:ring-2 focus-visible:ring-ring',
         sizes[size],
         className,
       )}

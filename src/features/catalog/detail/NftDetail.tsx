@@ -222,12 +222,12 @@ export function NftDetail({ nft }: { nft: Nft }) {
         <Breadcrumb
           items={[{ label: 'Início', to: '/' }, { label: 'Mercado', to: '/' }]}
         />
-        <div className="grid grid-cols-[minmax(0,540px)_minmax(0,1fr)] gap-8">
+        <div className="grid grid-cols-2 gap-8 lg:grid-cols-[minmax(0,540px)_minmax(0,1fr)]">
           <Gallery images={nft.gallery} badge={nft.badge} name={nft.name} />
 
           <div className="flex flex-col gap-4">
             <h1 className="text-3xl font-bold">{nft.name}</h1>
-            <div className="flex items-center justify-between gap-4 border-b border-border pb-2">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border pb-2">
               <p className="flex items-baseline gap-3 text-2xl font-bold text-primary">
                 {price}
                 {compareAt && (
@@ -244,7 +244,7 @@ export function NftDetail({ nft }: { nft: Nft }) {
 
             {editions}
 
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-wrap items-start justify-between gap-4">
               {stepper()}
               <div className="flex gap-3">
                 <Button

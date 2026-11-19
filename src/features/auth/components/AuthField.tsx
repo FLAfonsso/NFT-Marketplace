@@ -29,6 +29,7 @@ export function AuthField({ label, error, revealable, className, type, ...props 
           id={id}
           type={inputType}
           placeholder={props.placeholder ?? label}
+          aria-required="true"
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
           className={cn(

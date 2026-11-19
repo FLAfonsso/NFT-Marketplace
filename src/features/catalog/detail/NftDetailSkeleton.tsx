@@ -28,26 +28,28 @@ export function NftDetailSkeleton() {
       {/* desktop */}
       <div className="mx-auto hidden w-full max-w-[1200px] px-4 pt-6 pb-16 md:block">
         <Bone className="mb-4 h-4 w-40" />
-        <div className="grid grid-cols-[minmax(0,540px)_minmax(0,1fr)] gap-8">
+        <div className="grid grid-cols-2 gap-8 lg:grid-cols-[minmax(0,540px)_minmax(0,1fr)]">
           <div className="flex gap-4">
-            <div className="flex w-[88px] shrink-0 flex-col gap-3">
+            <div className="flex w-24 shrink-0 flex-col gap-3 p-1">
               {Array.from({ length: 4 }, (_, i) => (
                 <Bone key={i} className="aspect-square w-full rounded-lg" />
               ))}
             </div>
-            <Bone className="aspect-square w-full rounded-lg" />
+            <Bone className="aspect-square w-full self-start rounded-lg" />
           </div>
+          {/* Mesmos blocos e alturas da coluna real: título, preço, sobre, edição, quantidade, estoque, dados e compartilhar. */}
           <div className="flex flex-col gap-4">
             <Bone className="h-9 w-3/4" />
-            <Bone className="h-6 w-1/3" />
-            <Bone className="h-24 w-full" />
-            <Bone className="h-7 w-2/3" />
+            <Bone className="h-10 w-full" />
+            <Bone className="h-[92px] w-full" />
+            <Bone className="h-14 w-2/3" />
             <div className="flex items-center justify-between gap-4">
               <Bone className="h-9 w-32 rounded-full" />
               <Bone className="h-9 w-64" />
             </div>
             <Bone className="h-4 w-1/2" />
-            <Bone className="h-4 w-2/3" />
+            <Bone className="h-[84px] w-2/3" />
+            <Bone className="h-6 w-1/2" />
           </div>
         </div>
       </div>

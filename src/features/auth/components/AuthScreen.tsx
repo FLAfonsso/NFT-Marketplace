@@ -112,7 +112,7 @@ function AuthDialog({
           }
           className="items-center gap-5"
         >
-          <DialogTitle className="sr-only">
+          <DialogTitle render={<h1 />} className="sr-only">
             {mode === 'login' ? 'Entrar' : 'Criar conta'}
           </DialogTitle>
           <TabsList variant="line" className="h-auto gap-0 p-0">

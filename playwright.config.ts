@@ -23,7 +23,17 @@ export default defineConfig({
     video: 'off',
     locale: 'pt-BR',
   },
-  // Baselines visuais versionadas, separadas por projeto.
+  expect: {
+    toHaveScreenshot: {
+      // Tolerância curta: só absorve o serrilhado do anti-aliasing, nunca uma mudança de layout.
+      maxDiffPixelRatio: 0.01,
+      animations: 'disabled',
+      caret: 'hide',
+      scale: 'css',
+    },
+  },
+  // Baselines visuais versionadas, separadas por projeto. Sem sufixo de plataforma: o nome do
+  // arquivo é o mesmo no Windows, no macOS e no Linux (ver README, "Testes").
   snapshotPathTemplate: '{testDir}/__screenshots__/{projectName}/{testFilePath}/{arg}{ext}',
   projects: [
     {

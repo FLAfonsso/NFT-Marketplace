@@ -324,6 +324,9 @@ test('11b. checkout com o formulário preenchido e o diálogo fechado: a mudanç
   const item = ANA_ITEMS.emerald
   const newPrice = dec(item.unitPrice).add('0.5').toFixed()
 
+  // O evento só chega a quem já está conectado: sem esperar o handshake do socket (a página
+  // acabou de carregar), emitir cedo demais perde o evento e o aviso nunca aparece.
+  await expect.poll(async () => (await diagnostics(page)).status).toBe('connected')
   await emitNftUpdate(page, { nftId: item.nftId, price: newPrice })
 
   const quote = await apiQuote(page, ANA_LINES)
