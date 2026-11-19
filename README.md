@@ -73,3 +73,28 @@ export default defineConfig([
 ])
 
 ```
+
+## Testes
+
+- E2E com Playwright: `pnpm exec playwright test`.
+- Os testes sobem o próprio servidor Vite (com mocks) na porta **5199**; o `pnpm dev` continua na 5173. Se a 5199 estiver ocupada, a execução falha com erro de porta em uso.
+- **Não rode duas execuções do Playwright ao mesmo tempo**: cada uma apaga `test-results`.
+
+## Deploy
+
+Publicação na Vercel (o build usa os mocks e o Socket.IO simulado, sem backend):
+
+1. Importe o repositório na Vercel (**Add New → Project**).
+2. Framework Preset: **Vite**.
+3. Build Command: `pnpm build`. Output Directory: `dist`.
+4. Em Environment Variables, defina `VITE_ENABLE_MOCKS=true` (também está em `.env.production`).
+5. Publique. O `vercel.json` reescreve todas as rotas para `/index.html` (acesso direto e F5 em `/nft/...`, `/cart`, `/checkout`, `/profile`) e desativa o cache de `/mockServiceWorker.js`.
+
+Verificação local do build otimizado:
+
+```bash
+pnpm build && pnpm preview --port 4173
+E2E_BASE_URL=http://localhost:4173 pnpm exec playwright test e2e/smoke.spec.ts
+```
+
+Com `E2E_BASE_URL` definida, o Playwright não sobe o Vite e usa esse servidor.

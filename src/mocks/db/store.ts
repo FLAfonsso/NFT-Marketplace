@@ -30,7 +30,25 @@ export const subscribe = (listener: Listener) => {
   }
 }
 
+/** > 0 enquanto roda `withoutEvents`: as escritas valem, mas nada é publicado. */
+let muted = 0
+
+/**
+ * Executa escritas no store SEM publicar os eventos de mudança (o REST responde o estado novo,
+ * com version incrementada, e nenhuma conexão recebe evento). Só para os controles de teste de
+ * src/mocks/control.ts, que simulam um evento perdido (ex.: durante uma queda do socket).
+ */
+export const withoutEvents = <T>(fn: () => T): T => {
+  muted += 1
+  try {
+    return fn()
+  } finally {
+    muted -= 1
+  }
+}
+
 const publish = (events: StoreEvent[]) => {
+  if (muted > 0) return
   for (const event of events) {
     for (const listener of listeners) {
       try {

@@ -62,6 +62,24 @@ export const disconnectSockets = (page: Page) =>
 export const reconnectSockets = (page: Page) =>
   page.evaluate(() => window.__mocks!.reconnectSockets())
 
+/** Evento perdido: muda preço/estoque no servidor SEM emitir nft.updated (ver docs/REALTIME.md). */
+export const updateNftSilently = (page: Page, input: Parameters<Mocks['updateNftSilently']>[0]) =>
+  page.evaluate((i) => window.__mocks!.updateNftSilently(i), input)
+/** Evento perdido: liquida um pedido pendente no servidor SEM emitir order.updated. */
+export const settleOrderSilently = (page: Page, orderId: string, status: 'confirmed' | 'rejected') =>
+  page.evaluate(([id, s]) => window.__mocks!.settleOrderSilently(id, s), [orderId, status] as const)
+/** Contadores de handshake do Socket.IO simulado ({ accepted, rejected, refused }). */
+export const socketStats = (page: Page) => page.evaluate(() => window.__mocks!.socketStats())
+/**
+ * Segura os pedidos criados daqui em diante em "pending" (liquidação adiada por 1 h), até o teste
+ * liberar com emitOrderUpdate (com evento) ou settleOrderSilently (sem evento). Vale até recarregar
+ * a página (a configuração fica em memória); o pedido já criado guarda o prazo no banco simulado.
+ */
+export const holdOrdersPending = (page: Page) =>
+  page.evaluate(() => window.__mocks!.configure({ orderSettleMs: 3_600_000 }))
+export const expireSessions = (page: Page, userId?: string) =>
+  page.evaluate((id) => window.__mocks!.expireSessions(id), userId)
+
 /** Latência fixa das respostas REST dos mocks (para skeletons e carregamento lento). */
 export const setLatency = (page: Page, latencyMs: number) =>
   page.evaluate((ms) => window.__mocks!.configure({ latencyMs: ms }), latencyMs)

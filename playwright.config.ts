@@ -1,7 +1,10 @@
 import { defineConfig } from '@playwright/test'
 
-const PORT = 5173
-const BASE_URL = `http://localhost:${PORT}`
+// Porta própria dos testes: o `pnpm dev` continua na 5173 sem interferir.
+const PORT = 5199
+// E2E_BASE_URL aponta os testes para um servidor já no ar (ex.: `pnpm preview`); sem ela, sobe o Vite.
+const EXTERNAL_URL = process.env.E2E_BASE_URL
+const BASE_URL = EXTERNAL_URL ?? `http://localhost:${PORT}`
 const isCI = !!process.env.CI
 
 export default defineConfig({
@@ -45,12 +48,14 @@ export default defineConfig({
       use: { browserName: 'chromium', viewport: { width: 768, height: 1024 } },
     },
   ],
-  webServer: {
-    command: 'pnpm dev',
-    url: BASE_URL,
-    env: { VITE_ENABLE_MOCKS: 'true' },
-    // Fora de CI reaproveita o servidor já aberto (que precisa estar com mocks ligados).
-    reuseExistingServer: !isCI,
-    timeout: 120_000,
-  },
+  webServer: EXTERNAL_URL
+    ? undefined
+    : {
+        command: `pnpm exec vite --port ${PORT} --strictPort`,
+        url: BASE_URL,
+        env: { VITE_ENABLE_MOCKS: 'true' },
+        // Nunca reaproveita servidor: se a porta estiver ocupada, o Vite falha (strictPort).
+        reuseExistingServer: false,
+        timeout: 120_000,
+      },
 })

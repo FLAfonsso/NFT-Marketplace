@@ -1,6 +1,6 @@
 import { expireSessions } from './db/auth'
-import { updateNft } from './db/store'
-import { realtimeControl } from './realtime/control'
+import { read, updateNft, withoutEvents, type SettlementOutcome } from './db/store'
+import { emitNftUpdate, emitOrderUpdate, realtimeControl, type NftUpdateInput } from './realtime/control'
 import { getScenario, listScenarios, reset, setScenario } from './scenarios'
 import { faults, mockSettings, type Fault, type MockSettings } from './settings'
 
@@ -54,8 +54,27 @@ export const mockControl = {
     }
   },
   /**
+   * Evento perdido: mesma mudança de emitNftUpdate (mesma validação, version +1 no store e no
+   * REST), mas SEM emitir nft.updated. Simula a mudança que acontece durante uma queda do socket;
+   * o app só a descobre pela reconciliação REST. Devolve o NFT como o REST passa a responder.
+   */
+  updateNftSilently: (input: NftUpdateInput) => {
+    withoutEvents(() => emitNftUpdate(input))
+    return structuredClone(read().nfts.find((n) => n.id === input.nftId))
+  },
+  /**
+   * Evento perdido: liquida um pedido pendente como emitOrderUpdate (estoque, carrinho, version
+   * +1), mas SEM emitir order.updated nem o nft.updated da devolução de estoque. Para segurar o
+   * pedido em "pending" até aqui, use antes configure({ orderSettleMs: <alto> }).
+   * Devolve o pedido como o REST passa a responder.
+   */
+  settleOrderSilently: (orderId: string, status: SettlementOutcome) => {
+    withoutEvents(() => emitOrderUpdate({ orderId, status }))
+    return structuredClone(read().orders.find((r) => r.order.id === orderId)?.order)
+  },
+  /**
    * Tempo real (docs/REALTIME.md): emitNftUpdate, emitOrderUpdate, emitDuplicate, emitStale,
-   * disconnectSockets, reconnectSockets, listSockets e probe.
+   * disconnectSockets, reconnectSockets, listSockets, socketStats e probe.
    */
   ...realtimeControl,
 }

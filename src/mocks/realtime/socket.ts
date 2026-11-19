@@ -51,6 +51,15 @@ const rooms = new Map<string, Set<Connection>>()
 /** true entre disconnectSockets() e reconnectSockets(): novas conexões são recusadas. */
 let outage = false
 
+/**
+ * Contadores de handshake desde o último reset (diagnóstico para testes, via socketStats):
+ * - accepted: CONNECT aceito (com sessão ou visitante);
+ * - rejected: CONNECT_ERROR por sessão inválida ou vencida;
+ * - refused: tentativa recusada durante uma queda simulada (disconnectSockets).
+ * Servem para provar que o cliente não repete tentativas sem fim.
+ */
+const stats = { accepted: 0, rejected: 0, refused: 0 }
+
 // ---------------------------------------------------------------------------
 // Salas
 // ---------------------------------------------------------------------------
@@ -138,6 +147,7 @@ const closeSoon = (conn: Connection) => {
 }
 
 const reject = (conn: Connection, nsp: string, message: string, reason: string) => {
+  stats.rejected += 1
   conn.state = 'closing'
   conn.client.send(socketIoPacket('4', nsp, { message, data: { code: 'unauthorized', reason } }))
   closeSoon(conn)
@@ -174,6 +184,7 @@ const onConnect = (conn: Connection, nsp: string, auth: unknown) => {
     join(conn, userRoom(check.user.id))
   }
   join(conn, PUBLIC_ROOM)
+  stats.accepted += 1
   conn.state = 'connected'
   conn.client.send(socketIoPacket('0', '/', { sid: conn.socketId }))
 }
@@ -255,6 +266,7 @@ export const realtimeHandler = socketIoLink.addEventListener('connection', (conn
  * limpo antes do "open" só seria percebido no timeout de conexão (20 s).
  */
 function refuse(client: Client) {
+  stats.refused += 1
   const socket: unknown = Reflect.get(client, 'socket')
   if (socket instanceof EventTarget) socket.dispatchEvent(new Event('error'))
   client.close(1006, 'Queda simulada')
@@ -323,9 +335,13 @@ export const reconnectSockets = () => {
 export const listSockets = () =>
   [...connections].map(({ id, socketId, state, userId }) => ({ id, socketId, state, userId }))
 
+/** Handshakes aceitos, recusados por sessão e recusados por queda, desde o último reset. */
+export const socketStats = () => ({ ...stats })
+
 /** Chamado por reset() dos cenários: fecha as conexões, sai da queda e esquece o histórico. */
 export const resetRealtime = () => {
   outage = false
   clearHistory()
+  Object.assign(stats, { accepted: 0, rejected: 0, refused: 0 })
   for (const conn of [...connections]) closeConnection(conn, 1012, 'Reset da simulação')
 }

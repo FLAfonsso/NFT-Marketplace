@@ -1,4 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
+import Decimal from 'decimal.js'
 import { ChevronDownIcon } from 'lucide-react'
 import { useEffect, useId, useState } from 'react'
 import { useWatch } from 'react-hook-form'
@@ -18,6 +19,7 @@ import { attemptStorage } from '../storage'
 import { useCheckoutData } from '../useCheckoutData'
 import { useCheckoutFlow } from '../useCheckoutFlow'
 import { useCheckoutForm } from '../useCheckoutForm'
+import { priceChangeText, usePriceChangeNotice } from '../usePriceChangeNotice'
 import { useStaleQuoteGuard } from '../useStaleQuoteGuard'
 import { useWalletConnection } from '../useWalletConnection'
 import { ChangesDialog } from './ChangesDialog'
@@ -90,9 +92,14 @@ function CheckoutScreen({ userId }: { userId: string }) {
 
   const quoteData = quote.data
   const quoteLoading = quote.isPending && quote.fetchStatus !== 'idle'
+  const priceNotices = usePriceChangeNotice(state, cart?.items, quoteData)
   // Releitura também bloqueia: a cotação foi invalidada (ex.: preço mudou em tempo real) e a
-  // revisão não pode abrir com o valor anterior.
-  const quoteUpdating = quote.isPlaceholderData || quote.isRefetching
+  // revisão não pode abrir com o valor anterior. Vale também enquanto a cotação exibida ainda
+  // não reflete o preço do aviso.
+  const quoteBehind = priceNotices.notices.some((n) =>
+    quoteData?.items.some((l) => itemKey(l) === n.key && !new Decimal(l.unitPrice).eq(n.to)),
+  )
+  const quoteUpdating = quote.isPlaceholderData || quote.isRefetching || quoteBehind
   const couponRejected =
     !!cart?.couponCode && !!quoteData?.coupon && quoteData.coupon.status !== 'applied'
 
@@ -125,6 +132,8 @@ function CheckoutScreen({ userId }: { userId: string }) {
       (values) => {
         const selected = walletList?.find((w) => w.id === values.walletId)
         if (!selected || !connection.connection || !quoteData || !cart) return
+        // A revisão abre com a cotação nova: é a confirmação do aviso de mudança de preço.
+        priceNotices.dismiss()
         flow.openReview({
           quote: quoteData,
           items: cart.items,
@@ -185,6 +194,38 @@ function CheckoutScreen({ userId }: { userId: string }) {
         </div>
       )}
     </>
+  )
+
+  // A região fica sempre no DOM (leitores de tela só anunciam mudanças em regiões já existentes).
+  const priceNotice = (
+    <div
+      role="status"
+      data-testid="price-change-notice"
+      className="flex flex-col gap-2 empty:hidden"
+    >
+      {priceNotices.notices.length > 0 && (
+        <div className="flex flex-col gap-2 rounded-sm border border-primary/40 bg-surface p-4 text-sm">
+          {priceNotices.notices.map((n) => (
+            <p key={n.key} className="font-bold">
+              {priceChangeText(n, nameOf(n))}
+            </p>
+          ))}
+          <p>
+            {quoteData && !quoteUpdating ? (
+              <>
+                Novo total: <strong className="text-primary">{formatEth(quoteData.total)} ETH</strong>.{' '}
+                Confirme a compra para revisar com a cotação nova.
+              </>
+            ) : (
+              'Atualizando a cotação…'
+            )}
+          </p>
+          <Button type="button" variant="outline" size="sm" className="self-start" onClick={priceNotices.dismiss}>
+            Entendi
+          </Button>
+        </div>
+      )}
+    </div>
   )
 
   const summary = (
@@ -301,6 +342,7 @@ function CheckoutScreen({ userId }: { userId: string }) {
             {collector}
           </form>
           <aside aria-label="Resumo e pagamento" className="flex flex-col gap-6">
+            {priceNotice}
             {summary}
             {walletSection}
             {confirmBlock}
@@ -318,6 +360,7 @@ function CheckoutScreen({ userId }: { userId: string }) {
       <MobileHeader title="Pagamento com carteira" fallback="/cart" />
       <div className="flex flex-1 flex-col gap-6 px-4 pb-6">
         {alerts}
+        {priceNotice}
         <section className="rounded-3xl bg-surface">
           <h2>
             <button

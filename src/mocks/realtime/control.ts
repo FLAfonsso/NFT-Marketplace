@@ -6,7 +6,7 @@ import {
 } from '@/contracts'
 import { read, settleOrder, updateNft, type SettlementOutcome } from '../db/store'
 import { lastEvent, lastEventFor, staleEvent } from './events'
-import { deliver, disconnectSockets, listSockets, reconnectSockets } from './socket'
+import { deliver, disconnectSockets, listSockets, reconnectSockets, socketStats } from './socket'
 
 /**
  * Controles de tempo real do painel window.__mocks (src/mocks/control.ts).
@@ -167,5 +167,7 @@ export const realtimeControl = {
   reconnectSockets,
   /** Conexões abertas: { id, socketId, state, userId }. */
   listSockets,
+  /** Contadores de handshake { accepted, rejected, refused } desde o último reset. */
+  socketStats,
   probe,
 }

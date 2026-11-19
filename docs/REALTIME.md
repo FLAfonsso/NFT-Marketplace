@@ -110,9 +110,12 @@ Somam-se aos controles de [SCENARIOS.md](SCENARIOS.md).
 | `disconnectSockets()` | derruba todas as conexões (`transport close` no cliente) e recusa novas até `reconnectSockets()`. As tentativas falham com `websocket error`. Devolve quantas caíram |
 | `reconnectSockets()` | volta a aceitar conexões. O cliente reconecta na próxima tentativa do backoff (até `reconnectionDelayMax`, 5 s por padrão) |
 | `listSockets()` | conexões abertas: `{ id, socketId, state, userId }` |
+| `socketStats()` | contadores de handshake desde o último reset (ou recarga da página): `{ accepted, rejected, refused }`, ou seja, CONNECT aceito, CONNECT_ERROR por sessão inválida/vencida e tentativa recusada durante a queda. Serve para provar que o cliente não repete tentativas sem fim |
+| `updateNftSilently({ nftId, price?, availability? })` | **evento perdido:** mesma mudança e validação de `emitNftUpdate` (version +1, REST já responde o novo estado), mas **sem** `nft.updated`. Simula a mudança feita durante uma queda; o app só a descobre reconciliando pelo REST. Devolve o NFT |
+| `settleOrderSilently(orderId, status)` | **evento perdido:** liquida um pedido pendente como `emitOrderUpdate`, mas **sem** `order.updated` (nem o `nft.updated` da devolução de estoque). Para segurar o pedido em `pending` até aqui, use antes `configure({ orderSettleMs: <alto> })`. Devolve o pedido |
 | `probe({ token? })` | abre uma conexão real com `socket.io-client` e loga no console `connect`, `connect_error`, `disconnect`, tentativas de reconexão e cada evento (validado com o contrato). `token` ausente usa a sessão válida mais recente do store, e `null` conecta como visitante. Devolve a função que fecha |
 
-Eventos de `emitDuplicate`/`emitStale` seguem as mesmas regras de audiência. Eles não alteram o store nem o histórico.
+Eventos de `emitDuplicate`/`emitStale` seguem as mesmas regras de audiência. Eles não alteram o store nem o histórico. As mudanças `*Silently` alteram o store, mas não entram no histórico (não há evento).
 
 ```js
 const close = window.__mocks.probe()
