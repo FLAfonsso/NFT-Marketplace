@@ -85,8 +85,6 @@ export type CheckoutState =
   | { status: 'rejected'; order: Order }
   | { status: 'failed'; review: ReviewSnapshot | null; error: CheckoutError }
 
-export type CheckoutStatus = CheckoutState['status']
-
 export type CheckoutEvent =
   | { type: 'REVIEW'; review: ReviewSnapshot }
   | { type: 'CANCEL' }
