@@ -122,12 +122,12 @@ export function NftCard({
 export function NftCardSkeleton() {
   return (
     <li aria-hidden="true">
-      <div className={cn(cardImageBox, 'shimmer')} />
+      <div className={cn(cardImageBox, 'skeleton-bone')} />
       <div className={cardTextRow}>
-        <div className="shimmer h-4 w-3/4 rounded-sm" />
+        <div className="skeleton-bone h-4 w-3/4 rounded-sm" />
       </div>
       <div className={cardTextRow.replace('mt-2', 'mt-0')}>
-        <div className="shimmer h-4 w-1/3 rounded-sm" />
+        <div className="skeleton-bone h-4 w-1/3 rounded-sm" />
       </div>
     </li>
   )

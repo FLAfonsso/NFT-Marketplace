@@ -9,3 +9,14 @@ test('a página inicial abre e mostra o catálogo com 9 NFTs', async ({ page }) 
   })
   await expect(cards).toHaveCount(9)
 })
+
+
+test('rota inexistente mostra a página de não encontrado e permite voltar ao início', async ({ page }) => {
+  await page.goto('/rota-que-nao-existe')
+  await expect(page.getByRole('heading', { level: 1, name: 'Página não encontrada' })).toBeVisible()
+  await expect(page).toHaveTitle(/Página não encontrada/)
+  const back = page.getByRole('link', { name: 'Voltar ao início' })
+  await expect(back).toHaveAttribute('href', '/')
+  await back.click()
+  await expect(page).toHaveURL(/\/$/)
+})

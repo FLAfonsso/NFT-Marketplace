@@ -71,7 +71,7 @@ function FacetGroup({
             })
           : Array.from({ length: skeletonRows }, (_, i) => (
               <li key={i} aria-hidden="true" className="flex min-h-8 items-center px-1">
-                <div className="shimmer shimmer-strong h-4 w-full rounded-sm" />
+                <div className="skeleton-bone skeleton-bone-strong h-4 w-full rounded-sm" />
               </li>
             ))}
       </ul>

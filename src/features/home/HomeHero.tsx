@@ -93,7 +93,7 @@ export function HomeHero() {
                 className="aspect-square w-full rounded-2xl object-cover"
               />
             ) : (
-              <div className="shimmer aspect-square w-full rounded-2xl" aria-hidden="true" />
+              <div className="skeleton-bone aspect-square w-full rounded-2xl" aria-hidden="true" />
             )}
           </div>
 
@@ -137,7 +137,7 @@ export function HomeHero() {
               className="aspect-square w-full rounded-3xl object-cover"
             />
           ) : (
-            <div className="shimmer aspect-square w-full rounded-3xl" aria-hidden="true" />
+            <div className="skeleton-bone aspect-square w-full rounded-3xl" aria-hidden="true" />
           )}
         </div>
       </div>

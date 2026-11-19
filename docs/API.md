@@ -175,7 +175,7 @@ Pagamento recusado de forma determinística: carteira cujo endereço termina em 
 
 ## Ambiente de mocks
 
-- Ligado por `VITE_ENABLE_MOCKS=true` (`.env.local`, `.env.example`). `src/main.tsx` importa `src/mocks/browser.ts` dinamicamente e só renderiza depois de o worker iniciar.
+- Ligado por `VITE_ENABLE_MOCKS=true` (`.env.development` e `.env.production`; `.env.local` é opcional). `src/main.tsx` importa `src/mocks/browser.ts` dinamicamente e só renderiza depois de o worker iniciar.
 - Estado em `localStorage` (`nft-marketplace:mocks:db`), sincronizado entre abas.
 - Latência fixa padrão: 150 ms.
 

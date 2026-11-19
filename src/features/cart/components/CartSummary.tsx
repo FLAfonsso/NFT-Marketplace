@@ -69,7 +69,7 @@ export function CartSummary({
   const money = (value: string | undefined, prefix = '') =>
     showBone ? (
       <>
-        <Bone className={cn('ml-auto h-4 w-20', !isDesktop && 'shimmer-strong')} />
+        <Bone className={cn('ml-auto h-4 w-20', !isDesktop && 'skeleton-bone-strong')} />
         <span className="sr-only">Carregando</span>
       </>
     ) : quoteFailed || value === undefined ? (

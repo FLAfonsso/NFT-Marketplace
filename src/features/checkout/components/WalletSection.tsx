@@ -28,11 +28,11 @@ export function WalletListSkeleton() {
     <div aria-hidden="true" className="flex flex-col gap-3">
       {[0, 1].map((i) => (
         <div key={i} className={cn(card, 'flex h-[92px] items-center gap-4 px-5')}>
-          <Bone className="shimmer-strong size-4 rounded-full" />
+          <Bone className="skeleton-bone-strong size-4 rounded-full" />
           <div className="flex flex-1 flex-col gap-2">
-            <Bone className="shimmer-strong h-4 w-24" />
-            <Bone className="shimmer-strong h-3 w-40" />
-            <Bone className="shimmer-strong h-3 w-28" />
+            <Bone className="skeleton-bone-strong h-4 w-24" />
+            <Bone className="skeleton-bone-strong h-3 w-40" />
+            <Bone className="skeleton-bone-strong h-3 w-28" />
           </div>
         </div>
       ))}

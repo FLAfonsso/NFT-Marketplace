@@ -359,7 +359,7 @@ test.describe('13. detalhe: skeleton e recuperação', () => {
     const status = loadingStatus(page)
     await expect(status).toBeVisible()
     // Bones da galeria (o último "quadrado" visível é a imagem principal) e do contêiner.
-    const bone = status.locator('.shimmer.aspect-square:visible').last()
+    const bone = status.locator('.skeleton-bone.aspect-square:visible').last()
     await expect(bone).toBeVisible()
     const skeleton = {
       gallery: (await bone.boundingBox())!,

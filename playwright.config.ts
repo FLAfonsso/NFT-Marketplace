@@ -38,24 +38,16 @@ export default defineConfig({
   projects: [
     {
       name: 'desktop',
-      testIgnore: /layout\.spec\.ts/,
       use: { browserName: 'chromium', viewport: { width: 1440, height: 900 } },
     },
     {
       name: 'mobile',
-      testIgnore: /layout\.spec\.ts/,
       use: {
         browserName: 'chromium',
         viewport: { width: 390, height: 844 },
         isMobile: true,
         hasTouch: true,
       },
-    },
-    {
-      // Só para testes de layout (arquivos layout.spec.ts).
-      name: 'tablet',
-      testMatch: /layout\.spec\.ts/,
-      use: { browserName: 'chromium', viewport: { width: 768, height: 1024 } },
     },
   ],
   webServer: EXTERNAL_URL

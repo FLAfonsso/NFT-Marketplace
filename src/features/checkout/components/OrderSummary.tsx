@@ -23,12 +23,12 @@ export function SummarySkeleton() {
     <div aria-hidden="true" className="flex flex-col gap-2">
       {[0, 1, 2].map((i) => (
         <div key={i} className="flex h-[72px] items-center gap-3 rounded-sm bg-surface p-1.5">
-          <Bone className="shimmer-strong size-[60px] shrink-0 rounded-sm" />
+          <Bone className="skeleton-bone-strong size-[60px] shrink-0 rounded-sm" />
           <div className="flex flex-1 flex-col gap-2">
-            <Bone className="shimmer-strong h-4 w-2/3" />
-            <Bone className="shimmer-strong h-3 w-1/2" />
+            <Bone className="skeleton-bone-strong h-4 w-2/3" />
+            <Bone className="skeleton-bone-strong h-3 w-1/2" />
           </div>
-          <Bone className="shimmer-strong mr-2 h-5 w-16" />
+          <Bone className="skeleton-bone-strong mr-2 h-5 w-16" />
         </div>
       ))}
       <Bone className="mt-2 h-4 w-3/4 self-center" />
@@ -95,7 +95,7 @@ export function OrderSummary({
                   {nft ? (
                     <img src={nft.gallery[0]?.url} alt="" width={60} height={60} className="size-[60px] shrink-0 rounded-sm object-cover" />
                   ) : (
-                    <Bone className="shimmer-strong size-[60px] shrink-0 rounded-sm" />
+                    <Bone className="skeleton-bone-strong size-[60px] shrink-0 rounded-sm" />
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-bold">{nft?.name ?? 'Carregando…'}</p>

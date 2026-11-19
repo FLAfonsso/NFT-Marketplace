@@ -35,7 +35,7 @@ SPA em Vite + React 19 + TypeScript. Usa TanStack Router (rotas por arquivo) e T
 | [src/mocks/](src/mocks/) | Toda a simulação: banco, handlers REST, servidor Socket.IO, cenários e painel `window.__mocks`. É o único lugar com dado fictício. |
 | [e2e/](e2e/) | Testes Playwright e baselines visuais. |
 
-O ponto de entrada é [src/main.tsx](src/main.tsx). Ele liga o MSW (quando `VITE_ENABLE_MOCKS === 'true'`), espera o worker subir e só então renderiza `QueryClientProvider > AuthProvider > RouterProvider`. Se o MSW falhar, a página mostra o motivo em vez de seguir sem API.
+O ponto de entrada é [src/main.tsx](src/main.tsx). Ele liga o MSW (quando `VITE_ENABLE_MOCKS === 'true'`, definido em `.env.development` e `.env.production`; `.env.local` é opcional), espera o worker subir e só então renderiza `QueryClientProvider > AuthProvider > RouterProvider`. Se o MSW falhar, a página mostra o motivo em vez de seguir sem API.
 
 ## 2. Fluxo de dados
 

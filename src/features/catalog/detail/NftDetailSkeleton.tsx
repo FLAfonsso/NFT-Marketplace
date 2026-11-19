@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 
 const Bone = ({ className }: { className?: string }) => (
-  <div aria-hidden="true" className={cn('shimmer rounded-md', className)} />
+  <div aria-hidden="true" className={cn('skeleton-bone rounded-md', className)} />
 )
 
 /**

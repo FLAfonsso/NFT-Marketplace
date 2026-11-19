@@ -13,8 +13,8 @@ const labelClass = 'text-sm font-bold'
 export function CouponSkeleton({ strong }: { strong?: boolean }) {
   return (
     <div aria-hidden="true" className="flex flex-col gap-2">
-      <Bone className={cn('hidden h-5 w-36 md:block', strong && 'shimmer-strong')} />
-      <Bone className={cn('h-12 w-full rounded-full md:h-10 md:rounded-sm', strong && 'shimmer-strong')} />
+      <Bone className={cn('hidden h-5 w-36 md:block', strong && 'skeleton-bone-strong')} />
+      <Bone className={cn('h-12 w-full rounded-full md:h-10 md:rounded-sm', strong && 'skeleton-bone-strong')} />
     </div>
   )
 }

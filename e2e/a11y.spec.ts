@@ -555,16 +555,23 @@ test.describe('9. movimento reduzido', () => {
   test.describe('com reducedMotion: reduce', () => {
     test.use({ reducedMotion: 'reduce' })
 
-    test('9a. o shimmer dos skeletons não anima', async ({ page }) => {
+    test('9a. o skeleton-bone dos skeletons não anima', async ({ page }) => {
       await page.evaluate(() => window.__mocks!.setScenario('slow', { latencyMs: 4000 }))
       await page.reload()
-      const bone = page.locator('.shimmer:visible').first()
+      const bone = page.locator('.skeleton-bone:visible').first()
       await expect(bone).toBeVisible()
       const motion = await bone.evaluate((el) => {
         const cs = getComputedStyle(el)
         return { name: cs.animationName, duration: parseFloat(cs.animationDuration) }
       })
       expect(motion.name === 'none' || motion.duration < 0.01, JSON.stringify(motion)).toBe(true)
+      const paint = await bone.evaluate((el) => ({
+        clip: getComputedStyle(el).backgroundClip,
+        bg: getComputedStyle(el).backgroundColor,
+        page: getComputedStyle(document.body).backgroundColor,
+      }))
+      expect(paint.clip).not.toBe('text')
+      expect(paint.bg).not.toBe(paint.page)
     })
 
     test('9b. o carrossel do hero não troca sozinho', async ({ page }) => {
@@ -582,12 +589,20 @@ test.describe('9. movimento reduzido', () => {
   test.describe('controle: sem preferência por movimento reduzido', () => {
     test.use({ reducedMotion: 'no-preference' })
 
-    test('9c. o shimmer anima e o hero troca sozinho (prova que 9a e 9b medem algo)', async ({ page }) => {
+    test('9c. o skeleton-bone anima e o hero troca sozinho (prova que 9a e 9b medem algo)', async ({ page }) => {
       await page.evaluate(() => window.__mocks!.setScenario('slow', { latencyMs: 4000 }))
       await page.reload()
-      const bone = page.locator('.shimmer:visible').first()
+      const bone = page.locator('.skeleton-bone:visible').first()
       await expect(bone).toBeVisible()
-      expect(await bone.evaluate((el) => getComputedStyle(el).animationName)).toBe('shimmer')
+      expect(await bone.evaluate((el) => getComputedStyle(el).animationName)).toBe('skeleton-bone')
+      // Regressão: a utility `shimmer` do shadcn aplicava background-clip: text e deixava o osso invisível.
+      const paint = await bone.evaluate((el) => ({
+        clip: getComputedStyle(el).backgroundClip,
+        bg: getComputedStyle(el).backgroundColor,
+        page: getComputedStyle(document.body).backgroundColor,
+      }))
+      expect(paint.clip).not.toBe('text')
+      expect(paint.bg).not.toBe(paint.page)
 
       await page.evaluate(() => window.__mocks!.setScenario('default'))
       await useClock(page)

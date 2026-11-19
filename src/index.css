@@ -104,25 +104,25 @@
     @apply font-sans;
     }
 }
-/* Skeleton com shimmer (tokens.md). Sem animação com prefers-reduced-motion. */
-@keyframes shimmer {
+/* Skeleton com brilho animado (tokens.md). Não usar o nome "shimmer": colide com a utility de shadcn/tailwind.css (background-clip: text). Sem animação com prefers-reduced-motion. */
+@keyframes skeleton-bone {
   from { background-position: 200% 0; }
   to { background-position: -200% 0; }
 }
 
-.shimmer {
-  background-color: var(--border);
-  background-image: linear-gradient(90deg, transparent 0%, rgb(244 238 230 / 0.16) 50%, transparent 100%);
+.skeleton-bone {
+  background-color: var(--surface-strong);
+  background-image: linear-gradient(90deg, transparent 0%, rgb(244 238 230 / 0.28) 50%, transparent 100%);
   background-size: 200% 100%;
-  animation: shimmer 1.6s linear infinite;
+  animation: skeleton-bone 1.6s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .shimmer { animation: none; }
+  .skeleton-bone { animation: none; }
 }
 
 /* Bone sobre superfície (linha do carrinho, painel mobile): mais claro que o fundo do card. */
-.shimmer-strong { background-color: color-mix(in srgb, var(--surface-strong) 70%, var(--primary)); }
+.skeleton-bone-strong { background-color: color-mix(in srgb, var(--surface-strong) 70%, var(--primary)); }
 
 /* Rolagem suave até âncoras (Mercado, EXPLORAR, paginação); imediata com prefers-reduced-motion. */
 @media (prefers-reduced-motion: no-preference) {

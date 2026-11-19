@@ -34,8 +34,10 @@ const titleFor = (pathname: string) =>
  */
 export function Shell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  // Rota inexistente: a NotFoundPage define o próprio título (o efeito do pai rodaria depois e o sobrescreveria).
+  const notFound = useRouterState({ select: (s) => s.matches.length <= 1 })
   const isDesktop = useIsDesktop()
-  useDocumentTitle(titleFor(pathname))
+  useDocumentTitle(notFound ? undefined : titleFor(pathname))
 
   if (!isDesktop && AUTH_PATHS.has(pathname)) return <Outlet />
 

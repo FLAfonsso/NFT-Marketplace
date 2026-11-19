@@ -1,12 +1,14 @@
 import { Link, useRouter, type ErrorComponentProps } from '@tanstack/react-router'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { APP_NAME, useDocumentTitle } from '@/lib/useDocumentTitle'
 
 export function NotFoundPage() {
+  useDocumentTitle(`Página não encontrada | ${APP_NAME}`)
   return (
     <div className="mx-auto flex max-w-xl flex-col items-start gap-4 px-4 py-16">
       <h1 className="text-2xl font-semibold">Página não encontrada</h1>
       <p className="text-muted-foreground">O endereço que você abriu não existe.</p>
-      <Button nativeButton={false} render={<Link to="/" />}>Voltar ao início</Button>
+      <Link to="/" className={buttonVariants()}>Voltar ao início</Link>
     </div>
   )
 }

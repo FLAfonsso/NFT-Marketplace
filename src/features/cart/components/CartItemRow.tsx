@@ -14,7 +14,7 @@ export const DESKTOP_COLUMNS =
   'grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,1.3fr)_minmax(0,1fr)_40px]'
 
 export const Bone = ({ className }: { className?: string }) => (
-  <span aria-hidden="true" className={cn('shimmer block rounded-md', className)} />
+  <span aria-hidden="true" className={cn('skeleton-bone block rounded-md', className)} />
 )
 
 export type QuoteState = 'ready' | 'error'
@@ -54,25 +54,25 @@ export function CartRowSkeleton({ isDesktop }: { isDesktop: boolean }) {
     <li aria-hidden="true" className="h-[88px] rounded-sm bg-surface p-2.5">
       <div className={cn('grid h-full items-center gap-4', DESKTOP_COLUMNS)}>
         <div className="flex items-center gap-4">
-          <Bone className="shimmer-strong size-[68px] shrink-0 rounded-sm" />
+          <Bone className="skeleton-bone-strong size-[68px] shrink-0 rounded-sm" />
           <div className="flex flex-1 flex-col gap-2">
-            <Bone className="shimmer-strong h-4 w-3/4" />
-            <Bone className="shimmer-strong h-3 w-1/2" />
+            <Bone className="skeleton-bone-strong h-4 w-3/4" />
+            <Bone className="skeleton-bone-strong h-3 w-1/2" />
           </div>
         </div>
-        <Bone className="shimmer-strong h-4 w-16" />
-        <Bone className="shimmer-strong h-6 w-24" />
-        <Bone className="shimmer-strong h-4 w-16" />
-        <Bone className="shimmer-strong size-6 justify-self-center" />
+        <Bone className="skeleton-bone-strong h-4 w-16" />
+        <Bone className="skeleton-bone-strong h-6 w-24" />
+        <Bone className="skeleton-bone-strong h-4 w-16" />
+        <Bone className="skeleton-bone-strong size-6 justify-self-center" />
       </div>
     </li>
   ) : (
     <li aria-hidden="true" className="flex h-[112px] overflow-hidden rounded-3xl bg-surface">
-      <Bone className="shimmer-strong w-24 shrink-0 rounded-none" />
+      <Bone className="skeleton-bone-strong w-24 shrink-0 rounded-none" />
       <div className="flex flex-1 flex-col gap-3 p-3">
-        <Bone className="shimmer-strong h-4 w-3/4" />
-        <Bone className="shimmer-strong h-3 w-1/2" />
-        <Bone className="shimmer-strong mt-auto h-5 w-1/3" />
+        <Bone className="skeleton-bone-strong h-4 w-3/4" />
+        <Bone className="skeleton-bone-strong h-3 w-1/2" />
+        <Bone className="skeleton-bone-strong mt-auto h-5 w-1/3" />
       </div>
     </li>
   )

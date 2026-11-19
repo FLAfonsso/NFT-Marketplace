@@ -21,8 +21,8 @@ O segundo comando baixa o Chromium usado pelos testes E2E.
 ## Variáveis de ambiente
 
 - `VITE_ENABLE_MOCKS`: liga o MSW (REST) e o Socket.IO simulado. O valor deve ser exatamente `"true"` (minúsculas). Qualquer outro valor desliga os mocks e o app registra `[mocks] desligados` no Console. Como não há backend, ela é necessária em dev e no build publicado.
-- Arquivos `.env` versionados no repositório: `.env.example` (modelo, com `VITE_ENABLE_MOCKS=true`) e `.env.production` (usado no build de produção, também com `VITE_ENABLE_MOCKS=true`).
-- `.env.local` não é versionado (o `.gitignore` ignora `*.local`). Para rodar em dev, crie-o a partir do modelo: `cp .env.example .env.local`.
+- Arquivos `.env` versionados no repositório: `.env.development` (usado por `pnpm dev`), `.env.production` (usado por `pnpm build`) e `.env.example` (modelo). Todos têm `VITE_ENABLE_MOCKS=true`, então dev e build já ligam os mocks num checkout limpo.
+- `.env.local` é opcional e não é versionado (o `.gitignore` ignora `*.local`). Use-o só para sobrescrever algo localmente, por exemplo `VITE_ENABLE_MOCKS=false` para desligar os mocks.
 
 ## Comandos
 
