@@ -217,22 +217,22 @@ test('4. remover: lixeira, foco válido, resumo e badge; o último item mostra o
 
   // Remove o do meio: o foco vai para a lixeira do próximo item.
   const [first, middle, last] = ANA_CART
-  await trashOf(page, middle.name).click()
+  await trashOf(page, middle.name, middle.editionName).click()
   await expect(cartRow(page, middle.name)).toHaveCount(0)
-  await expect(trashOf(page, last.name)).toBeFocused()
+  await expect(trashOf(page, last.name, last.editionName)).toBeFocused()
   const afterMiddle = [first, last]
   await expectCartRows(page, afterMiddle)
   await expectCartSummary(page, totalsOf(afterMiddle))
   await expectBadge(page, total - middle.quantity)
 
   // Remove o último da lista: o foco volta ao anterior.
-  await trashOf(page, last.name).click()
+  await trashOf(page, last.name, last.editionName).click()
   await expect(cartRow(page, last.name)).toHaveCount(0)
-  await expect(trashOf(page, first.name)).toBeFocused()
+  await expect(trashOf(page, first.name, first.editionName)).toBeFocused()
   await expectBadge(page, first.quantity)
 
   // Remove o único que resta: carrinho vazio, com chamada para explorar, foco no título.
-  await trashOf(page, first.name).click()
+  await trashOf(page, first.name, first.editionName).click()
   const empty = page.getByRole('heading', { name: 'Seu carrinho está vazio' })
   await expect(empty).toBeVisible()
   await expect(empty).toBeFocused()
@@ -341,6 +341,7 @@ test('7. visitante: itens sobrevivem ao F5, são mesclados ao entrar e não apar
   page,
   isMobile,
 }) => {
+  test.setTimeout(120_000) // F5, dois logins e trocas de usuário; no mobile beira os 60 s
   // Sem sessão, dois NFTs: um que a Ana já tem (mesma edição) e um novo.
   const ivory = ANA_ITEMS.ivory
   const guestIvory: Purchase = {

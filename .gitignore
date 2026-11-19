@@ -28,3 +28,8 @@ dist-ssr
 # Playwright (as baselines em e2e/__screenshots__ são versionadas)
 test-results
 playwright-report
+
+# Lighthouse (lighthouse/reports é versionado; só temporários ficam de fora)
+lighthouse/reports/*.tmp
+lighthouse/reports/warmup*
+lighthouse/.tmp

@@ -94,8 +94,11 @@ export const stepperOf = (row: Locator) => row.getByRole('group', { name: 'Quant
 export const quantityOf = (row: Locator) => stepperOf(row).locator('output')
 export const plusOf = (row: Locator) => row.getByRole('button', { name: 'Aumentar quantidade' })
 export const minusOf = (row: Locator) => row.getByRole('button', { name: 'Diminuir quantidade' })
-export const trashOf = (page: Page, name: string) =>
-  page.getByRole('button', { name: `Remover ${name} do carrinho` })
+export const trashOf = (page: Page, name: string, editionName: string) =>
+  page.getByRole('button', {
+    name: `Remover ${name} (edição ${editionName}) do carrinho`,
+    exact: true,
+  })
 export const checkoutCta = (page: Page) =>
   page.getByRole('link', { name: 'Conectar e finalizar' })
 export const couponInput = (page: Page) => page.getByLabel('Código promocional')

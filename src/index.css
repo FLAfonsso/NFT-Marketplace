@@ -111,8 +111,8 @@
 }
 
 .shimmer {
-  background-color: var(--surface);
-  background-image: linear-gradient(90deg, transparent 0%, rgb(244 238 230 / 0.08) 50%, transparent 100%);
+  background-color: var(--border);
+  background-image: linear-gradient(90deg, transparent 0%, rgb(244 238 230 / 0.16) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
 }
@@ -122,7 +122,7 @@
 }
 
 /* Bone sobre superfície (linha do carrinho, painel mobile): mais claro que o fundo do card. */
-.shimmer-strong { background-color: var(--surface-strong); }
+.shimmer-strong { background-color: color-mix(in srgb, var(--surface-strong) 70%, var(--primary)); }
 
 /* Rolagem suave até âncoras (Mercado, EXPLORAR, paginação); imediata com prefers-reduced-motion. */
 @media (prefers-reduced-motion: no-preference) {

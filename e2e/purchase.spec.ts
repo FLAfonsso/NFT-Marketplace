@@ -456,7 +456,12 @@ test('17. mobile: o fluxo completo com menu inferior, cartões, seção recolhí
   const lines = [line(pick)]
   await expectCartRows(page, lines)
   await expectCartSummary(page, totalsOf(lines))
-  await expect(page.getByRole('button', { name: `Remover ${pick.nft.name} do carrinho` })).toBeVisible()
+  await expect(
+    page.getByRole('button', {
+      name: `Remover ${pick.nft.name} (edição ${pick.edition.name}) do carrinho`,
+      exact: true,
+    }),
+  ).toBeVisible()
   await expect(checkoutCta(page)).toBeInViewport()
   await expectBadge(page, pick.quantity)
 

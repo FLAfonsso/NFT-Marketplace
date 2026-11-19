@@ -1,0 +1,563 @@
+{
+  "generatedAt": "2026-11-19T06:33:29.174Z",
+  "goals": {
+    "performance": 90,
+    "accessibility": 95,
+    "best-practices": 95,
+    "seo": 90
+  },
+  "runsPerCombination": 3,
+  "env": {
+    "lighthouse": "13.6.0",
+    "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/158.0.0.0 Safari/537.36",
+    "node": "v26.13.1",
+    "pnpm": "12.21.0",
+    "os": "Windows_NT 10.0.26300 (win32 x64, Windows 11 Pro)",
+    "cpu": "AMD Ryzen 5 PRO 4650G with Radeon Graphics x12",
+    "memoryGB": 15.4
+  },
+  "combinations": [
+    {
+      "page": "inicio",
+      "url": "/",
+      "profile": "mobile",
+      "medians": {
+        "scores": {
+          "performance": 53,
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 92
+        },
+        "metrics": {
+          "lcp": 5111.4947250000005,
+          "cls": 0.03289001242129153,
+          "tbt": 1316.7173000000012,
+          "fcp": 2356.4240499999996,
+          "si": 3094.0195048783266
+        }
+      },
+      "runs": [
+        {
+          "run": 1,
+          "name": "inicio-mobile-run1",
+          "scores": {
+            "performance": 53,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "metrics": {
+            "lcp": 4975.207525,
+            "cls": 0.03289001242129153,
+            "tbt": 2286.29785,
+            "fcp": 934.4042999999999,
+            "si": 2863.4609094747216
+          },
+          "apiRequests": 3,
+          "apiOk": true,
+          "lcpElement": "<img alt=\"Emerald Ape #042, arte principal\" loading=\"lazy\" class=\"size-full rounded-2xl object-cover md:rounded-md\" src=\"/assets/Eape.png\">",
+          "lcpBreakdownMs": {
+            "timeToFirstByte": 5,
+            "resourceLoadDelay": 533,
+            "resourceLoadDuration": 65,
+            "elementRenderDelay": 1122
+          },
+          "runtimeError": null,
+          "finalUrl": "http://localhost:4173/"
+        },
+        {
+          "run": 2,
+          "name": "inicio-mobile-run2",
+          "scores": {
+            "performance": 53,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "metrics": {
+            "lcp": 5111.4947250000005,
+            "cls": 0.03289001242129153,
+            "tbt": 1316.7173000000012,
+            "fcp": 2356.4240499999996,
+            "si": 3146.2059326174094
+          },
+          "apiRequests": 3,
+          "apiOk": true,
+          "lcpElement": "<img alt=\"Emerald Ape #042, arte principal\" loading=\"lazy\" class=\"size-full rounded-2xl object-cover md:rounded-md\" src=\"/assets/Eape.png\">",
+          "lcpBreakdownMs": {
+            "timeToFirstByte": 11,
+            "resourceLoadDelay": 586,
+            "resourceLoadDuration": 80,
+            "elementRenderDelay": 1160
+          },
+          "runtimeError": null,
+          "finalUrl": "http://localhost:4173/"
+        },
+        {
+          "run": 3,
+          "name": "inicio-mobile-run3",
+          "scores": {
+            "performance": 59,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "metrics": {
+            "lcp": 5181.43305,
+            "cls": 0.03289001242129153,
+            "tbt": 742.7112999999999,
+            "fcp": 2443.43305,
+            "si": 3094.0195048783266
+          },
+          "apiRequests": 3,
+          "apiOk": true,
+          "lcpElement": "<img alt=\"Emerald Ape #042, arte principal\" loading=\"lazy\" class=\"size-full rounded-2xl object-cover md:rounded-md\" src=\"/assets/Eape.png\">",
+          "lcpBreakdownMs": {
+            "timeToFirstByte": 6,
+            "resourceLoadDelay": 567,
+            "resourceLoadDuration": 76,
+            "elementRenderDelay": 1076
+          },
+          "runtimeError": null,
+          "finalUrl": "http://localhost:4173/"
+        }
+      ],
+      "weakAudits": {
+        "performance": [
+          {
+            "id": "total-blocking-time",
+            "title": "Total Blocking Time",
+            "score": 0.05,
+            "weight": 30,
+            "value": "2,290 ms"
+          },
+          {
+            "id": "largest-contentful-paint",
+            "title": "Largest Contentful Paint",
+            "score": 0.27,
+            "weight": 25,
+            "value": "5.0 s"
+          }
+        ],
+        "accessibility": [],
+        "best-practices": [],
+        "seo": [
+          {
+            "id": "robots-txt",
+            "title": "robots.txt is not valid",
+            "score": 0,
+            "weight": 1,
+            "value": "41 errors found"
+          }
+        ]
+      }
+    },
+    {
+      "page": "inicio",
+      "url": "/",
+      "profile": "desktop",
+      "medians": {
+        "scores": {
+          "performance": 97,
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 92
+        },
+        "metrics": {
+          "lcp": 1270.5644999999995,
+          "cls": 0.028788636186597976,
+          "tbt": 41.58320000000003,
+          "fcp": 299.043,
+          "si": 796.4739253154037
+        }
+      },
+      "runs": [
+        {
+          "run": 1,
+          "name": "inicio-desktop-run1",
+          "scores": {
+            "performance": 97,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "metrics": {
+            "lcp": 1281.9587999999999,
+            "cls": 0.028788636186597976,
+            "tbt": 41.58320000000003,
+            "fcp": 302.8336,
+            "si": 796.4739253154037
+          },
+          "apiRequests": 4,
+          "apiOk": true,
+          "lcpElement": "<img alt=\"Sage Nomad #009, arte principal\" width=\"500\" height=\"500\" loading=\"eager\" fetchpriority=\"high\" class=\"aspect-square w-full rounded-3xl object-cover\" src=\"/assets/Sape.png\">",
+          "lcpBreakdownMs": {
+            "timeToFirstByte": 10,
+            "resourceLoadDelay": 616,
+            "resourceLoadDuration": 88,
+            "elementRenderDelay": 519
+          },
+          "runtimeError": null,
+          "finalUrl": "http://localhost:4173/"
+        },
+        {
+          "run": 2,
+          "name": "inicio-desktop-run2",
+          "scores": {
+            "performance": 97,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "metrics": {
+            "lcp": 1270.5644999999995,
+            "cls": 0.028788636186597976,
+            "tbt": 26.478499999999997,
+            "fcp": 299.043,
+            "si": 802.3081062879914
+          },
+          "apiRequests": 4,
+          "apiOk": true,
+          "lcpElement": "<img alt=\"Sage Nomad #009, arte principal\" width=\"500\" height=\"500\" loading=\"eager\" fetchpriority=\"high\" class=\"aspect-square w-full rounded-3xl object-cover\" src=\"/assets/Sape.png\">",
+          "lcpBreakdownMs": {
+            "timeToFirstByte": 7,
+            "resourceLoadDelay": 609,
+            "resourceLoadDuration": 89,
+            "elementRenderDelay": 508
+          },
+          "runtimeError": null,
+          "finalUrl": "http://localhost:4173/"
+        },
+        {
+          "run": 3,
+          "name": "inicio-desktop-run3",
+          "scores": {
+            "performance": 98,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "metrics": {
+            "lcp": 1158.2082999999998,
+            "cls": 0.028788636186597976,
+            "tbt": 44.226200000000006,
+            "fcp": 277.5476,
+            "si": 753.5080941922735
+          },
+          "apiRequests": 4,
+          "apiOk": true,
+          "lcpElement": "<img alt=\"Sage Nomad #009, arte principal\" width=\"500\" height=\"500\" loading=\"eager\" fetchpriority=\"high\" class=\"aspect-square w-full rounded-3xl object-cover\" src=\"/assets/Sape.png\">",
+          "lcpBreakdownMs": {
+            "timeToFirstByte": 5,
+            "resourceLoadDelay": 638,
+            "resourceLoadDuration": 73,
+            "elementRenderDelay": 489
+          },
+          "runtimeError": null,
+          "finalUrl": "http://localhost:4173/"
+        }
+      ],
+      "weakAudits": {
+        "performance": [
+          {
+            "id": "largest-contentful-paint",
+            "title": "Largest Contentful Paint",
+            "score": 0.87,
+            "weight": 25,
+            "value": "1.3 s"
+          }
+        ],
+        "accessibility": [
+          {
+            "id": "label-content-name-mismatch",
+            "title": "Elements with visible text labels do not have matching accessible names.",
+            "score": 0,
+            "weight": 0,
+            "value": null
+          }
+        ],
+        "best-practices": [],
+        "seo": [
+          {
+            "id": "robots-txt",
+            "title": "robots.txt is not valid",
+            "score": 0,
+            "weight": 1,
+            "value": "41 errors found"
+          }
+        ]
+      }
+    },
+    {
+      "page": "nft-003",
+      "url": "/nft/nft_003",
+      "profile": "mobile",
+      "medians": {
+        "scores": {
+          "performance": 57,
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 92
+        },
+        "metrics": {
+          "lcp": 4964.22805,
+          "cls": 0,
+          "tbt": 1292.5906499999999,
+          "fcp": 942.3257000000001,
+          "si": 2656.64562080389
+        }
+      },
+      "runs": [
+        {
+          "run": 1,
+          "name": "nft-003-mobile-run1",
+          "scores": {
+            "performance": 58,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "metrics": {
+            "lcp": 4924.488550000001,
+            "cls": 0,
+            "tbt": 1231.8371499999998,
+            "fcp": 942.3257000000001,
+            "si": 2622.8344410900886
+          },
+          "apiRequests": 3,
+          "apiOk": true,
+          "lcpElement": "<img alt=\"Neon Vessel #552, arte principal\" class=\"size-full object-cover md:rounded-2xl\" src=\"/assets/Nape.png\">",
+          "lcpBreakdownMs": {
+            "timeToFirstByte": 6,
+            "resourceLoadDelay": 742,
+            "resourceLoadDuration": 37,
+            "elementRenderDelay": 538
+          },
+          "runtimeError": null,
+          "finalUrl": "http://localhost:4173/nft/nft_003"
+        },
+        {
+          "run": 2,
+          "name": "nft-003-mobile-run2",
+          "scores": {
+            "performance": 54,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "metrics": {
+            "lcp": 4980.80985,
+            "cls": 0,
+            "tbt": 1765.73005,
+            "fcp": 960.5399,
+            "si": 2828.9507221578915
+          },
+          "apiRequests": 3,
+          "apiOk": true,
+          "lcpElement": "<img alt=\"Neon Vessel #552, arte principal\" class=\"size-full object-cover md:rounded-2xl\" src=\"/assets/Nape.png\">",
+          "lcpBreakdownMs": {
+            "timeToFirstByte": 5,
+            "resourceLoadDelay": 794,
+            "resourceLoadDuration": 39,
+            "elementRenderDelay": 601
+          },
+          "runtimeError": null,
+          "finalUrl": "http://localhost:4173/nft/nft_003"
+        },
+        {
+          "run": 3,
+          "name": "nft-003-mobile-run3",
+          "scores": {
+            "performance": 57,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "metrics": {
+            "lcp": 4964.22805,
+            "cls": 0,
+            "tbt": 1292.5906499999999,
+            "fcp": 936.8187,
+            "si": 2656.64562080389
+          },
+          "apiRequests": 3,
+          "apiOk": true,
+          "lcpElement": "<img alt=\"Neon Vessel #552, arte principal\" class=\"size-full object-cover md:rounded-2xl\" src=\"/assets/Nape.png\">",
+          "lcpBreakdownMs": {
+            "timeToFirstByte": 6,
+            "resourceLoadDelay": 727,
+            "resourceLoadDuration": 39,
+            "elementRenderDelay": 537
+          },
+          "runtimeError": null,
+          "finalUrl": "http://localhost:4173/nft/nft_003"
+        }
+      ],
+      "weakAudits": {
+        "performance": [
+          {
+            "id": "total-blocking-time",
+            "title": "Total Blocking Time",
+            "score": 0.2,
+            "weight": 30,
+            "value": "1,230 ms"
+          },
+          {
+            "id": "largest-contentful-paint",
+            "title": "Largest Contentful Paint",
+            "score": 0.28,
+            "weight": 25,
+            "value": "4.9 s"
+          }
+        ],
+        "accessibility": [],
+        "best-practices": [],
+        "seo": [
+          {
+            "id": "robots-txt",
+            "title": "robots.txt is not valid",
+            "score": 0,
+            "weight": 1,
+            "value": "41 errors found"
+          }
+        ]
+      }
+    },
+    {
+      "page": "nft-003",
+      "url": "/nft/nft_003",
+      "profile": "desktop",
+      "medians": {
+        "scores": {
+          "performance": 89,
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 92
+        },
+        "metrics": {
+          "lcp": 1231.6900500000002,
+          "cls": 0.1857008063410159,
+          "tbt": 11.386649999999975,
+          "fcp": 285.12669999999997,
+          "si": 665.0815222484107
+        }
+      },
+      "runs": [
+        {
+          "run": 1,
+          "name": "nft-003-desktop-run1",
+          "scores": {
+            "performance": 89,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "metrics": {
+            "lcp": 1178.76845,
+            "cls": 0.1857008063410159,
+            "tbt": 34.74384999999995,
+            "fcp": 276.5123,
+            "si": 665.0815222484107
+          },
+          "apiRequests": 3,
+          "apiOk": true,
+          "lcpElement": "<img alt=\"Neon Vessel #552, arte principal\" class=\"size-full object-cover md:rounded-2xl\" src=\"/assets/Nape.png\">",
+          "lcpBreakdownMs": {
+            "timeToFirstByte": 13,
+            "resourceLoadDelay": 736,
+            "resourceLoadDuration": 37,
+            "elementRenderDelay": 364
+          },
+          "runtimeError": null,
+          "finalUrl": "http://localhost:4173/nft/nft_003"
+        },
+        {
+          "run": 2,
+          "name": "nft-003-desktop-run2",
+          "scores": {
+            "performance": 95,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "metrics": {
+            "lcp": 1234.84005,
+            "cls": 0.09736708238536398,
+            "tbt": 11.386649999999975,
+            "fcp": 287.2267,
+            "si": 722.0760381158958
+          },
+          "apiRequests": 3,
+          "apiOk": true,
+          "lcpElement": "<img alt=\"Neon Vessel #552, arte principal\" class=\"size-full object-cover md:rounded-2xl\" src=\"/assets/Nape.png\">",
+          "lcpBreakdownMs": {
+            "timeToFirstByte": 10,
+            "resourceLoadDelay": 850,
+            "resourceLoadDuration": 37,
+            "elementRenderDelay": 438
+          },
+          "runtimeError": null,
+          "finalUrl": "http://localhost:4173/nft/nft_003"
+        },
+        {
+          "run": 3,
+          "name": "nft-003-desktop-run3",
+          "scores": {
+            "performance": 89,
+            "accessibility": 100,
+            "best-practices": 100,
+            "seo": 92
+          },
+          "metrics": {
+            "lcp": 1231.6900500000002,
+            "cls": 0.1857008063410159,
+            "tbt": 0,
+            "fcp": 285.12669999999997,
+            "si": 664.4593244771577
+          },
+          "apiRequests": 3,
+          "apiOk": true,
+          "lcpElement": "<img alt=\"Neon Vessel #552, arte principal\" class=\"size-full object-cover md:rounded-2xl\" src=\"/assets/Nape.png\">",
+          "lcpBreakdownMs": {
+            "timeToFirstByte": 6,
+            "resourceLoadDelay": 798,
+            "resourceLoadDuration": 44,
+            "elementRenderDelay": 409
+          },
+          "runtimeError": null,
+          "finalUrl": "http://localhost:4173/nft/nft_003"
+        }
+      ],
+      "weakAudits": {
+        "performance": [
+          {
+            "id": "cumulative-layout-shift",
+            "title": "Cumulative Layout Shift",
+            "score": 0.66,
+            "weight": 25,
+            "value": "0.186"
+          }
+        ],
+        "accessibility": [
+          {
+            "id": "label-content-name-mismatch",
+            "title": "Elements with visible text labels do not have matching accessible names.",
+            "score": 0,
+            "weight": 0,
+            "value": null
+          }
+        ],
+        "best-practices": [],
+        "seo": [
+          {
+            "id": "robots-txt",
+            "title": "robots.txt is not valid",
+            "score": 0,
+            "weight": 1,
+            "value": "41 errors found"
+          }
+        ]
+      }
+    }
+  ]
+}

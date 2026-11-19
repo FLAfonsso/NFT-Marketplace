@@ -140,6 +140,7 @@ export function CartItemRow({
     )
   }
 
+  const itemLabel = `${nft.name}${edition ? ` (edição ${edition.name})` : ''}`
   const max = edition ? Math.max(1, Math.min(edition.available, edition.maxPerOrder)) : item.quantity
   const unitPrice = quoteLine?.unitPrice ?? nft.price
   const cover = nft.gallery[0]
@@ -159,6 +160,7 @@ export function CartItemRow({
   const stepper = (
     <QuantityStepper
       compact
+      context={itemLabel}
       value={item.quantity}
       max={max}
       disabled={busy}
@@ -196,7 +198,7 @@ export function CartItemRow({
               <p className="truncate text-sm font-bold">{nft.name}</p>
               <p className="text-xs text-muted-foreground">Edição: {edition?.name ?? '—'}</p>
             </div>
-            {removeButton(`Remover ${nft.name} do carrinho`)}
+            {removeButton(`Remover ${itemLabel} do carrinho`)}
           </div>
           {notices}
           <div className="mt-auto flex items-end justify-between gap-2">
@@ -232,7 +234,7 @@ export function CartItemRow({
           <span className="sr-only">Total: </span>
           {lineTotal}
         </p>
-        {removeButton(`Remover ${nft.name} do carrinho`)}
+        {removeButton(`Remover ${itemLabel} do carrinho`)}
       </div>
       {(notices.length > 0 || errorMessage) && (
         <div className="mt-1 flex flex-col gap-1 pl-[84px]">

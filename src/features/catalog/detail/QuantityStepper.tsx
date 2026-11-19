@@ -13,6 +13,7 @@ export function QuantityStepper({
   disabled,
   compact,
   className,
+  context,
 }: {
   value: number
   max: number
@@ -21,8 +22,11 @@ export function QuantityStepper({
   /** Barra inferior mobile: botões menores. */
   compact?: boolean
   className?: string
+  /** Identifica o item no nome acessível dos botões (ex.: "Cosmic Bloom #118 (edição 1/10)"). */
+  context?: string
 }) {
   const messageId = useId()
+  const suffix = context ? ` de ${context}` : ''
   const atLimit = !disabled && value >= max
   const size = compact ? 'size-6' : 'size-9'
   return (
@@ -30,7 +34,7 @@ export function QuantityStepper({
       <div role="group" aria-label="Quantidade" className="flex items-center gap-3">
         <button
           type="button"
-          aria-label="Diminuir quantidade"
+          aria-label={`Diminuir quantidade${suffix}`}
           disabled={disabled || value <= 1}
           onClick={() => onChange(value - 1)}
           className={cn(round, size)}
@@ -42,7 +46,7 @@ export function QuantityStepper({
         </output>
         <button
           type="button"
-          aria-label="Aumentar quantidade"
+          aria-label={`Aumentar quantidade${suffix}`}
           aria-describedby={atLimit ? messageId : undefined}
           disabled={disabled || value >= max}
           onClick={() => onChange(value + 1)}

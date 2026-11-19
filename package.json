@@ -18,7 +18,9 @@
     "test:e2e:report": "playwright show-report",
     "test:a11y": "playwright test e2e/a11y.spec.ts",
     "test:visual": "playwright test e2e/visual.spec.ts",
-    "test:visual:update": "playwright test e2e/visual.spec.ts --update-snapshots"
+    "test:visual:update": "playwright test e2e/visual.spec.ts --update-snapshots",
+    "lighthouse": "node lighthouse/run.mjs",
+    "lighthouse:report": "node lighthouse/run.mjs --report"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
