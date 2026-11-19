@@ -33,3 +33,6 @@ playwright-report
 lighthouse/reports/*.tmp
 lighthouse/reports/warmup*
 lighthouse/.tmp
+
+# Configuração local de ferramentas (Claude Code)
+.claude/
