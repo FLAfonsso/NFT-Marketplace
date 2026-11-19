@@ -1,78 +1,125 @@
-# React + TypeScript + Vite
+# Kurio — marketplace de NFTs
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+O Kurio é um marketplace de NFTs: catálogo com busca e filtros, detalhe do NFT, favoritos, carrinho, checkout com carteira simulada, pedidos e perfil. Não há backend real: a API REST é simulada com MSW e o tempo real, com um Socket.IO simulado, ambos no navegador.
 
-Currently, two official plugins are available:
+Deploy: https://nft-marketplace-delta-ruby.vercel.app
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Pré-requisitos
 
-## React Compiler
+- Node `>=26` (`engines` do `package.json`).
+- pnpm `12.21.0` (`packageManager`: `pnpm@12.21.0`).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Setup
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+pnpm install
+pnpm exec playwright install chromium
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+O segundo comando baixa o Chromium usado pelos testes E2E.
+
+## Variáveis de ambiente
+
+- `VITE_ENABLE_MOCKS`: liga o MSW (REST) e o Socket.IO simulado. O valor deve ser exatamente `"true"` (minúsculas). Qualquer outro valor desliga os mocks e o app registra `[mocks] desligados` no Console. Como não há backend, ela é necessária em dev e no build publicado.
+- Arquivos `.env` versionados no repositório: `.env.example` (modelo, com `VITE_ENABLE_MOCKS=true`) e `.env.production` (usado no build de produção, também com `VITE_ENABLE_MOCKS=true`).
+- `.env.local` não é versionado (o `.gitignore` ignora `*.local`). Para rodar em dev, crie-o a partir do modelo: `cp .env.example .env.local`.
+
+## Comandos
+
+| Comando | O que faz |
+|---|---|
+| `pnpm dev` | Servidor de desenvolvimento do Vite (porta 5173). |
+| `pnpm build` | Checa os tipos (`tsc -b`) e gera o build de produção em `dist`. |
+| `pnpm preview` | Serve o build de `dist` localmente. |
+| `pnpm typecheck` | Checagem de tipos (`tsc -b --noEmit`). |
+| `pnpm lint` | ESLint em todo o projeto. |
+| `pnpm test:e2e` | Roda todos os testes E2E com Playwright. |
+| `pnpm test:e2e:ui` | Testes E2E no modo interativo do Playwright (`--ui`). |
+| `pnpm test:e2e:report` | Abre o último relatório HTML do Playwright. |
+| `pnpm test:a11y` | Só os testes de acessibilidade (`e2e/a11y.spec.ts`). |
+| `pnpm test:visual` | Só os testes de regressão visual (`e2e/visual.spec.ts`). |
+| `pnpm test:visual:update` | Regrava os baselines das capturas visuais (`--update-snapshots`). |
+| `pnpm lighthouse` | Roda a auditoria Lighthouse (build, preview e 12 medições). |
+| `pnpm lighthouse:report` | Mostra o resumo da última auditoria e abre o `RESULTADOS.md`. |
+
+## Credenciais fictícias
+
+Dados de demonstração, de [docs/API.md](docs/API.md). Só existem nos mocks.
+
+| Usuário | E-mail | Senha | Observação |
+|---|---|---|---|
+| Ana Souza | `ana@example.com` | `ana12345` | usuário `ana_souza`, ENS `ana.eth`, código de indicação `KURIO-ANA26`; carteira principal `Principal` (MetaMask, Ethereum) e secundária `Reserva` (WalletConnect, Polygon); carrinho com 2 itens, 3 favoritos, 1 pedido confirmado |
+| Bruno Lima | `bruno@example.com` | `bruno12345` | usuário `bruno_lima`, ENS `bruno.eth`, código de indicação `KURIO-BRUNO26`; carteira principal `Principal` (Coinbase Wallet, Base) e secundária `Sem saldo` (termina em `dead`, recusa pagamentos) |
+
+Cupons:
+
+| Cupom | Efeito |
+|---|---|
+| `BEMVINDO10` | 10 % de desconto, com teto de 0.5 ETH |
+| `MENOS005` | desconto fixo de 0.005 ETH |
+| `BLACKFRIDAY25` | expirado |
+| `NAOEXISTE` | inexistente |
+
+Os códigos de indicação são fictícios e os endereços de carteira são `0x` + 40 hexadecimais.
+
+## Cenários
+
+Os cenários de rede e falha (offline, erro de servidor, sessão expirada etc.) valem para toda rota REST em `/api` quando `VITE_ENABLE_MOCKS=true`, inclusive no deploy.
+
+- **Por URL:** `?scenario=<nome>` (e, opcionalmente, `&seed=<n>`), por exemplo `/?scenario=offline`. Um nome desconhecido é ignorado, com aviso no Console. O cenário fica salvo no `localStorage` e sobrevive ao refresh.
+- **Pelo Console:** `window.__mocks.setScenario('nome', opções?)` ativa o cenário do zero. `window.__mocks.reset()` restaura o seed, as configurações padrão e o cenário `default`. Depois de trocar, recarregue a página (`location.reload()`).
 
 ```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+window.__mocks.setScenario('server-error', { failures: 3 }); location.reload()
+window.__mocks.listScenarios()   // todos os nomes
+window.__mocks.reset()
 ```
+
+Enquanto `?scenario=` estiver na URL, ele vence o que foi escolhido pelo Console. A lista completa e os detalhes estão em [docs/SCENARIOS.md](docs/SCENARIOS.md).
+
+## Como reproduzir cada falha
+
+Abra o app (dev ou deploy). Onde o passo diz "como Ana", entre antes em `/login` com `ana@example.com` / `ana12345`. Para ir ao checkout: adicione um item ao carrinho, abra o carrinho e avance para o pagamento.
+
+- **`offline`**
+  1. Abra `/?scenario=offline`. Toda requisição falha como erro de rede e o catálogo mostra o erro com "Tentar de novo".
+  2. No Console, rode `window.__mocks.setScenario('default')` e clique em "Tentar de novo": o catálogo carrega sem recarregar a página.
+- **`server-error`**
+  1. Abra `/?scenario=server-error`. As duas primeiras chamadas de cada rota respondem 500 e 503, alternando, e o catálogo mostra o erro com "Tentar de novo".
+  2. Clique em "Tentar de novo": a terceira chamada responde 200. `setScenario('server-error', { failures: 3 })` muda a quantidade de falhas.
+- **`session-expired`**
+  1. Abra `/login?scenario=session-expired` e entre como Ana.
+  2. Navegue: depois de 5 requisições autenticadas com sucesso (`afterRequests`, padrão 5) o token expira e a próxima resposta é 401. O app leva ao login com "Sua sessão expirou. Entre novamente para continuar."
+  3. Entre de novo; a navegação segue normal. Pelo Console, `setScenario('session-expired', { afterRequests: 2 })` antecipa a expiração.
+- **`register-conflict`**
+  1. Abra `/signup?scenario=register-conflict`.
+  2. Preencha o formulário com dados válidos e qualquer e-mail e envie: a API responde 409 e o campo e-mail mostra "E-mail já cadastrado".
+- **`coupon-invalid`**
+  1. Entre como Ana, abra `/?scenario=coupon-invalid` e vá ao carrinho.
+  2. Aplique `BEMVINDO10`: o cupom aparece como "Cupom inválido." e o desconto é 0.
+- **`coupon-expired`**
+  1. Entre como Ana, abra `/?scenario=coupon-expired` e vá ao carrinho.
+  2. Aplique `BEMVINDO10`: o cupom aparece como "Cupom expirado." e o desconto é 0.
+- **`price-changed`**
+  1. Entre como Ana e abra `/?scenario=price-changed`.
+  2. Vá ao checkout, preencha os dados, conecte a carteira, abra a revisão e envie o pedido.
+  3. O primeiro envio do cenário sobe 10 % o preço do primeiro item e a API responde 409: o app mostra o antes e o depois, sem criar pedido. Clique em "Confirmar novos valores" para criar o pedido com a nova cotação. Para repetir, rode `window.__mocks.setScenario('price-changed')`.
+- **`sold-out`**
+  1. Igual a `price-changed`, com `/?scenario=sold-out`.
+  2. No primeiro envio, a edição do primeiro item esgota: o app avisa que o item está esgotado, não cria pedido e oferece "Ajustar carrinho".
+- **`order-timeout`**
+  1. Entre como Ana, abra `/?scenario=order-timeout`, vá ao checkout e envie o pedido.
+  2. O servidor cria o pedido, mas a resposta não chega. Depois de 10 s (timeout do envio) a revisão mostra "Verificando seu pedido...".
+  3. O app reenvia com a mesma `Idempotency-Key`; a API devolve o mesmo pedido (200, `Idempotent-Replayed: true`) e a tela segue para `/orders/<id>` sem duplicar a compra.
+- **`payment-rejected`**
+  1. Entre como Ana, abra `/?scenario=payment-rejected` e conclua uma compra com qualquer carteira.
+  2. Após cerca de 2,5 s o pedido vira recusado: a tela mostra "Pagamento recusado" com o motivo, e os itens continuam no carrinho. (Sem o cenário, a carteira `Sem saldo` do Bruno, terminada em `dead`, também recusa.)
+- **`wallet-rejected`**
+  1. Entre como Ana, abra `/?scenario=wallet-rejected` e vá ao checkout.
+  2. Em "Conectar carteira", a primeira conexão é recusada (403). Clique em "Tentar de novo": a segunda conecta normalmente.
+- **Desconexão do socket**
+  1. Abra o app. No Console, rode `window.__mocks.disconnectSockets()`: as conexões caem e novas são recusadas. O indicador de tempo real, no canto da tela, passa a mostrar "Reconectando…" e depois "Sem atualizações em tempo real."
+  2. Rode `window.__mocks.reconnectSockets()`: o cliente reconecta na próxima tentativa do backoff (até 5 s) e o indicador volta ao estado quieto. Detalhes em [docs/REALTIME.md](docs/REALTIME.md).
 
 ## Estrutura
 
@@ -104,12 +151,12 @@ Auditoria da SPEC (seção 10): início (`/`) e detalhe do NFT (`/nft/nft_003`),
 
 | Página | Perfil | Perf. | A11y | Best Pr. | SEO | LCP | CLS | TBT |
 |---|---|---|---|---|---|---|---|---|
-| `/` | Mobile | 53 | 100 | 100 | 92 | 5111 ms | 0.033 | 1317 ms |
-| `/` | Desktop | 97 | 100 | 100 | 92 | 1271 ms | 0.029 | 42 ms |
-| `/nft/nft_003` | Mobile | 57 | 100 | 100 | 92 | 4964 ms | 0.000 | 1293 ms |
-| `/nft/nft_003` | Desktop | 89 | 100 | 100 | 92 | 1232 ms | 0.186 | 11 ms |
+| `/` | Mobile | 64 | 100 | 100 | 92 | 4888 ms | 0.033 | 722 ms |
+| `/` | Desktop | 98 | 100 | 100 | 92 | 1128 ms | 0.029 | 6 ms |
+| `/nft/nft_003` | Mobile | 79 | 100 | 100 | 92 | 4898 ms | 0.000 | 201 ms |
+| `/nft/nft_003` | Desktop | 98 | 100 | 100 | 92 | 1138 ms | 0.000 | 0 ms |
 
-Metas: Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 95, SEO ≥ 90. Atingidas: Accessibility, Best Practices e SEO em todas as combinações, e Performance em `/` desktop. Abaixo da meta: Performance em `/` mobile (53), `/nft/nft_003` mobile (57) e `/nft/nft_003` desktop (89). Causas e oportunidades em [lighthouse/RESULTADOS.md](lighthouse/RESULTADOS.md). Medição em 2026-11-19, Lighthouse 13.6.0, AMD Ryzen 5 PRO 4650G with Radeon Graphics x12.
+Só os dois perfis mobile ficam abaixo de 90 em Performance (`/` com 64 e `/nft/nft_003` com 79); os dois desktop passam. Accessibility, Best Practices e SEO atingem as metas (≥ 95, ≥ 95 e ≥ 90) em todas as combinações. Causas e oportunidades em [lighthouse/RESULTADOS.md](lighthouse/RESULTADOS.md). Medição em 2026-11-19, Lighthouse 13.6.0, AMD Ryzen 5 PRO 4650G with Radeon Graphics x12.
 
 ## Deploy
 
@@ -138,3 +185,10 @@ E2E_BASE_URL=http://localhost:4173 pnpm exec playwright test e2e/smoke.spec.ts
 ```
 
 Com `E2E_BASE_URL` definida, o Playwright não sobe o Vite e usa esse servidor.
+
+## Documentação
+
+- [ARCHITECTURE.md](ARCHITECTURE.md): decisões de arquitetura.
+- [docs/API.md](docs/API.md): API REST simulada, contratos e dados de demonstração.
+- [docs/REALTIME.md](docs/REALTIME.md): eventos em tempo real (Socket.IO simulado) e controles do painel.
+- [docs/SCENARIOS.md](docs/SCENARIOS.md): cenários de rede e falha.
